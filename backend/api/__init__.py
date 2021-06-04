@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger("uvicorn.error")
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

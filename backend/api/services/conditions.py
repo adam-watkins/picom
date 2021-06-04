@@ -111,7 +111,7 @@ class PipelineConditionService(DatabaseService):
             expected = set(condition.values)
             have = set(bucket_item.values)
 
-            if condition.match.lower() == 'all' and expected != have:
+            if condition.match.lower() == 'all' and not have.issuperset(expected):
                 return False
             elif condition.match.lower() == 'any' and expected.isdisjoint(have):
                 return False

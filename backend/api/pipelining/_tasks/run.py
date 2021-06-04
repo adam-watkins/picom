@@ -25,13 +25,14 @@ def _run_next_nodes(job: PipelineJob, run_id: int):
 @dramatiq.actor(max_retries=0)
 def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
     with worker_session() as db:
+
         # TODO: Check if all previous nodes have finished
         # TODO: TEMP fix for input nodes
-
         node: PipelineNode = db.query(PipelineNode).get(node_id)
         if node.container_is_input:
             for n in node.get_next_nodes():
                 run_node_task.send_with_options(args=(run_id, n.id))
+            return
 
         job = create_job(db, run_id, node_id)
 

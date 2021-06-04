@@ -6,7 +6,7 @@ from pynetdicom import AE, evt, debug_logger
 from pynetdicom.presentation import AllStoragePresentationContexts
 from pynetdicom.sop_class import VerificationSOPClass
 
-from api import config
+from api import config, logger
 from api.pipelining import DicomIngestController
 from api.services import DicomNodeService, DicomIngestService
 
@@ -37,7 +37,6 @@ def get_ae_titles(event):
 
 def handle_association_request(event):
     requestor_ae_title, called_ae_title = get_ae_titles(event)
-    print("HERO")
 
     with DicomNodeService() as node_service:
         node_service.update_or_create_from_connection(
@@ -49,14 +48,17 @@ def handle_association_request(event):
     # TODO: Not in list of allowed connections and allow push to pipe
     if not is_valid_ae_title(called_ae_title):
         event.assoc.acse.send_reject(REJECTED_PERMANENT, SOURCE_SERVICE_USER, DIAG_CALLED_AET_NOT_RECOGNIZED)
+        logger.log(f"REJECTED REQUEST ASSOCIATION FROM {requestor_ae_title} DUE TO UNKNOWN CALLED AET: {called_ae_title}")
 
     # ALREADY CONNECTED
     elif requestor_ae_title in CONNECTIONS:
         event.assoc.acse.send_reject(REJECTED_TRANSIENT, SOURCE_PROVIDER_USER, DIAG_LOCAL_LIMIT_EXCEEDED)
+        logger.log(f"REJECTED REQUEST ASSOCIATION FROM {requestor_ae_title} AS IT IS ALREADY CONNECTED")
     else:
         path = pathlib.Path(config.UPLOAD_DIR) / 'tmp' / str(uuid.uuid1())
         CONNECTIONS[requestor_ae_title] = path
         path.mkdir(parents=True)
+        logger.log(f"ACCEPTED REQUEST ASSOCIATION FROM {requestor_ae_title}")
 
 
 def is_valid_ae_title(called_ae_title):
@@ -129,6 +131,10 @@ class SCP:
         #     debug_logger()
 
     def start_server(self, blocking=False):
+        msg = f"Starting DICOM SCP {self.ae_title} on port {self.port}"
+        logger.info(msg)
+        print(msg)
+
         self._ae.start_server((self.host, self.port), block=blocking, evt_handlers=self._handlers)
 
     def stop_server(self):

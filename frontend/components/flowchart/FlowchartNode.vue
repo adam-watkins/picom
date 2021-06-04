@@ -30,7 +30,7 @@
           />
         </v-chip-group>
         <v-icon-btn
-          v-if="selected && selected.host !== '*'"
+          v-if="selected && selected.host !== '*' && container_is_input"
           :icon="echoIcon"
           @click="sendEcho(selected)"
         />

@@ -1,14 +1,11 @@
-from typing import List
-
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
 
 from api import session, config
-from api.models.user import User, UserLocal, UserLDAP
-from api.schemas.user import Token
 from api.auth.ldap import LDAPManager
+from api.models.user import User
+from api.schemas.user import Token
 
 router = APIRouter()
 ldap = LDAPManager()

@@ -82,6 +82,21 @@ class DicomIngestService(DatabaseService):
             user_id=self._get_user_id()
         )
 
+    def _run_pipeline(self, pipeline, folder) -> bool:
+        return PipelineController.run_pipeline_on_folder(
+            db=self._db,
+            pipeline_id=pipeline.id,
+            folder=pathlib.Path(folder),
+            initiator_dicom_node_id=self.initiator_node.id
+        )
+
+    def _run_pipeline_bucket(self, pipeline, conditions_service: PipelineConditionService) -> bool:
+        print(f"Running folder through pipeline: '{pipeline.ae_title}' from storage bucket")
+        ret = self._run_pipeline(pipeline, conditions_service.storage_bucket.get_abs_path())
+        conditions_service.storage_bucket.delete(self._db)
+
+        return ret
+
     def _ingest_through_pipeline(self) -> bool:
         ae_title = utils.strip_prefix(self.called_aet, config.PIPELINE_AE_PREFIX)
         pipeline = self._db.query(Pipeline).filter_by(ae_title=ae_title).first()
@@ -99,17 +114,14 @@ class DicomIngestService(DatabaseService):
             shutil.rmtree(self.folder)
 
             # Run if all the conditions are satisfied
-            if not conditions_service.are_conditions_met():
+            if conditions_service.are_conditions_met():
+                return self._run_pipeline_bucket(pipeline, conditions_service)
+
+            else:
                 print(f"Waiting for more files before running pipeline: '{pipeline.ae_title}'")
                 return False
 
-            # Updating to the bucket's folder
-            folder = conditions_service.storage_bucket.get_abs_path()
-
-        print(f"Running folder through pipeline: '{pipeline.ae_title}'")
-        return PipelineController.run_pipeline_on_folder(
-            db=self._db,
-            pipeline_id=pipeline.id,
-            folder=pathlib.Path(folder),
-            initiator_dicom_node_id=self.initiator_node.id
-        )
+        # No condition, run pipeline
+        else:
+            print(f"Running folder through pipeline: '{pipeline.ae_title}'")
+            return self._run_pipeline(pipeline, folder)

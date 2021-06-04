@@ -14,4 +14,9 @@ if __name__ == '__main__':
     if not config.RAIVEN_WORKER:
         start_dicom_server()
 
-    uvicorn.run('asgi:application', host=config.APT_HOST, port=config.API_PORT, reload=config.API_HOT_RELOAD)
+    uvicorn.run(
+        'asgi:application',
+        host=config.APT_HOST,
+        port=config.API_PORT,
+        reload=config.API_HOT_RELOAD
+    )

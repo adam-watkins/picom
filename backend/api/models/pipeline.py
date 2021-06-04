@@ -35,7 +35,7 @@ class PipelineNodeStorageBucket(PathMixin, Base):
     pipeline_node_id = Column(ForeignKey("pipeline_node.id", **CASCADE))
     dicom_node_id = Column(ForeignKey("dicom_node.id", **CASCADE))
 
-    items = relationship("PipelineNodeStorageBucketItem")
+    items = relationship("PipelineNodeStorageBucketItem", cascade='all, delete-orphan')
 
 
 class PipelineNodeStorageBucketItem(Base):
