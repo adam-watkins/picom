@@ -23,6 +23,7 @@ nav:
   - Developer Guide:
     - Frontend: frontend.md
     - Backend: backend.md
+    - Documentation: documentation.md
 
 markdown_extensions:
   - meta
