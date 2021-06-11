@@ -11,6 +11,15 @@
 </p>
 
 ---
+##### Table of Contents  
+[Background](#background)  
+[Requirements](#requirements)  
+[Deployment](#deployment)  
+[Database Migrations](#database-migrations)  
+[Documentation](#documentation)  
+[Configuration](#config)  
+
+---
 ## Background
 Artificial intelligence (AI) is finding an increasing number of applications in nuclear medicine and radiology. Deep 
 learning models have been used to improve image quality, automate image segmentation, and aid in disease classification.
@@ -77,7 +86,11 @@ alembic upgrade head # Upgrade to latest revision
 
 ## Documentation
 
-The documentation for raiven was created with mkdocs-material. To test the documentation locally:
+The documentation for raiven was created with mkdocs-material. 
+
+The documentation is hosted in https://raiven.qurit.ca
+
+To test the documentation locally:
 ```bash
 cd docs/en
 python mkdocs serve
