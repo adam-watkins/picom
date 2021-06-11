@@ -11,14 +11,14 @@
 </p>
 
 ---
-
+## Background
 Artificial intelligence (AI) is finding an increasing number of applications in nuclear medicine and radiology. Deep 
 learning models have been used to improve image quality, automate image segmentation, and aid in disease classification.
 Models that combine learned features, radiomic features, and clinical information can be used to predict disease progression,
 treatment outcome and survival. 
 
 However, translation of such models/algorithms into clinical trials or standard of care applications is often nontrivial
-due to the lack of an appropriate framework for model deployment. The aim of this project is to develop such a framework
+due to the lack of an appropriate framework for model deployment. RAIVEN is a framework
 that satisfies the following design specifications: 
 1. Allows easy combination of different algorithms to create pipelines with multistep workflows
 2. Works with existing workstations available to physicians/researchers 
@@ -27,7 +27,6 @@ that satisfies the following design specifications:
    
 The RAIVEN (Radiology AI Virtual ENvironment) framework represents a vision of a new radiology environment that 
 incorporates AI tools to better treat and diagnose disease.
-
 
 ## Requirements
 
