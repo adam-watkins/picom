@@ -4,7 +4,6 @@
 <p align="center">
   <em>The Radiology Environment of the Future</em></br>
   <sub>Radiology + AI + Environment  = Raiven</sub></br></br>
-  Access the code in our GitHub repository at <a href="https://github.com/qurit/raiven">https://github.com/qurit/raiven</a>
 </p>
 <p align="center">
 </p>
