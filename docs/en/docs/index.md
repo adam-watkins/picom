@@ -33,8 +33,11 @@ RAIVEN is a framework that satisfies the following design specifications:
 The RAIVEN (Radiology AI Virtual ENvironment) framework represents a vision of a new radiology environment that 
 incorporates AI tools to better treat and diagnose disease.
 
+### Usage
+Here is an example of how easy is to drag and connect different algorithms to create image processing pipelines.
+
 <p align="center">
-  <img src="../../pipeline_builder.gif" alt="Raiven Pipeline Builder" style="height:300px" />
+  <img src="../../pipeline_builder.gif" alt="Pipeline Builder Example" />
 </p>
 
 ## Requirements
