@@ -37,7 +37,7 @@ incorporates AI tools to better treat and diagnose disease.
 Here is an example of how easy is to drag and connect different algorithms to create image processing pipelines.
 
 <p align="center">
-  <img src="../../pipeline_builder.gif" alt="Pipeline Builder Example" />
+  <img src="./assets/pipeline_builder.gif" alt="Pipeline Builder Example" />
 </p>
 
 ## Requirements
