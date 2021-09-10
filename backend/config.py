@@ -12,8 +12,10 @@ class BaseConfig:
     API_PORT = 5000
     API_HOT_RELOAD = True
     CORS_ALLOW_ORIGINS = "http://localhost:3000"
-    UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
-    UPLOAD_VOLUME_ABSPATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
+    UPLOAD_DIR = os.path.join(os.path.dirname(
+        os.path.dirname(__file__)), 'uploads')
+    UPLOAD_VOLUME_ABSPATH = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), 'uploads')
     INTERNAL_USERNAME = 'RAIVEN_INTERNAL'
     DEFAULT_CONTAINERS = [
         {
@@ -52,7 +54,7 @@ class BaseConfig:
 
     # Docker
     DOCKER_URI = 'tcp://127.0.0.1:2375'
-    DOCKER_HOST_OS = 'windows'
+    DOCKER_HOST_OS = 'linux'
 
     # RabbitMQ
     RABBITMQ_HOST = '127.0.0.1'
@@ -62,7 +64,7 @@ class BaseConfig:
     RAIVEN_OUTPUT_DIR = '/mnt/raiven/output'
     IMAGE_TAG_PREFIX = 'RAIVEN'
 
-    # AE Prefixes 
+    # AE Prefixes
     PIPELINE_AE_PREFIX = 'RVP-'
     USER_AE_PREFIX = 'RVU-'
     VALID_AE_PREFIXES = (PIPELINE_AE_PREFIX, USER_AE_PREFIX)
@@ -80,7 +82,8 @@ class BaseConfig:
     SHAREABLE_SETTINGS = ['PIPELINE_AE_PREFIX', 'USER_AE_PREFIX']
 
     def __init__(self):
-        env_vars = [v for v in os.environ.keys() if (v in vars(BaseConfig)) and not v.startswith('_')]
+        env_vars = [v for v in os.environ.keys() if (
+            v in vars(BaseConfig)) and not v.startswith('_')]
         [self.apply_env_var(k) for k in env_vars]
 
         if not os.path.exists(self.UPLOAD_DIR):
@@ -113,7 +116,8 @@ class BaseConfig:
     def _all_settings_to_json(self) -> dict:
         """ Should not be used due to security concerns """
 
-        settings = {k: v for k in dir(self) if not k.startswith('_') and not callable(v := getattr(self, k))}
+        settings = {k: v for k in dir(self) if not k.startswith(
+            '_') and not callable(v := getattr(self, k))}
         settings.update(vars(self))
 
         return settings
