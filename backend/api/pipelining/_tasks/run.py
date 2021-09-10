@@ -15,7 +15,8 @@ def _run_next_nodes(job: PipelineJob, run_id: int):
         try:
             # TODO: Clean this up variable naming
             if node.container_is_output:
-                dicom_output_task.send_with_options(args=(run_id, node.id, job.id))
+                dicom_output_task.send_with_options(
+                    args=(run_id, node.id, job.id))
             else:
                 run_node_task.send_with_options(args=(run_id, node.id, job.id))
         except Exception as e:
@@ -34,7 +35,7 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
                 run_node_task.send_with_options(args=(run_id, n.id))
             return
 
-        job = create_job(db, run_id, node_id)
+        job: PipelineJob = create_job(db, run_id, node_id)
 
         if not (build := job.node.container.build):
             # TODO: ABORT AND BUILD
@@ -89,7 +90,8 @@ def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
 
         if not (dest := job.node.destination):
             job.update(db, status='failed', exit_code=-1)
-            PipelineJobError(pipeline_job_id=job.id, stderr='No Destination for the pipeline').save(db)
+            PipelineJobError(pipeline_job_id=job.id,
+                             stderr='No Destination for the pipeline').save(db)
             return
 
         if previous_job_id:
