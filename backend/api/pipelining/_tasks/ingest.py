@@ -46,7 +46,7 @@ def run_ingest_task(folder: str, dicom_node_id: int, user_id: int = None):
                     dicom_patient_id=patient.id,
                     study_instance_uid=ds.StudyInstanceUID,
                     study_date=datetime.strptime(
-                        ds.StudyDate + ds.StudyTime, '%Y%m%d%H%M%S')
+                        ds.StudyDate + converted_studytime, '%Y%m%d%H%M%S')
                 )
                 study.save(db)
 
