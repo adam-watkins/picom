@@ -38,6 +38,7 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
         job: PipelineJob = create_job(db, run_id, node_id)
 
         if not (build := job.node.container.build):
+            # Build exists, even those the image doesn't, which causes an error
             # TODO: ABORT AND BUILD
             print('Cant run node because container is not built')
             return
@@ -53,6 +54,8 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
         volumes = get_volumes(job)
         environment = get_environment(job)
 
+        # If the user cleared/pruned their unused images, it cannot find the container image to run
+        # TODO: Handle case when the container image is deleted, and rebuild before running
         container: DockerContainer = docker.containers.run(
             image=build.tag,
             detach=True,
@@ -83,10 +86,11 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
         container.remove()
 
 
-@dramatiq.actor(max_retries=3)
+# for testing purposes, revert back to 3 in production
+@dramatiq.actor(max_retries=1)
 def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
     with worker_session() as db:
-        job = create_job(db, run_id, node_id)
+        job: PipelineJob = create_job(db, run_id, node_id)
 
         if not (dest := job.node.destination):
             job.update(db, status='failed', exit_code=-1)
@@ -100,11 +104,20 @@ def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
         else:
             prev: PipelineRun = db.query(PipelineRun).get(run_id)
             folder = prev.get_abs_input_path()
-
+        print('Dest outside', dest)
+        print('PipelineJob', job)
+        print('PipelineJob Run', job.run)
         # Return to sender
+        print('dest.host', dest.host)
+        print('dest.port', dest.port)
+        print('config.host', config._RTS_HOST)
+        print('config.port', config._RTS_PORT)
         if dest.host == config._RTS_HOST and dest.port == config._RTS_PORT:
+            # This is where the bug is, job.run.initiator is None
             dest = job.run.initiator
-
+            print('Dest inside', dest)
+        print('Dest', dest)
+        print('Folder', folder)
         # Long running task
         send_dicom_folder(dest, folder)
 

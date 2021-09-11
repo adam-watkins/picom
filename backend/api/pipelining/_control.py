@@ -25,8 +25,11 @@ class PipelineController:
         pipeline_run.status = 'running'
         pipeline_run.save(db)
         db.commit()
-
+        # DEBUG
+        print('pipeline_run', pipeline_run)
+        print('pipeline_run pipeline', pipeline_run.pipeline)
         for node in pipeline_run.pipeline.get_starting_nodes():
+            print('node', node)
             task = run.dicom_output_task if node.container_is_output else run.run_node_task
             args = pipeline_run.id, node.id
 

@@ -53,7 +53,8 @@ def post_tags(tags: List[str], db: Session = Depends(session)):
 
 @router.post("/{container_id}/tags", response_model=List[str])
 def post_container_tags(container_id: int, tags: List[str], db: Session = Depends(session)):
-    db.query(ContainerTags).filter(ContainerTags.container_id == container_id).delete()
+    db.query(ContainerTags).filter(
+        ContainerTags.container_id == container_id).delete()
     for tag in tags:
         tag = db.query(Tag).filter_by(tag_name=tag).first()
         ContainerTags(
@@ -74,7 +75,8 @@ def save_file(db_container: Container, filename: str, file: bytes):
             dockerfile_path = next(dockerfiles)
 
             upload_dir = pathlib.Path(config.UPLOAD_DIR)
-            db_container.dockerfile_path = dockerfile_path.relative_to(upload_dir).as_posix()
+            db_container.dockerfile_path = dockerfile_path.relative_to(
+                upload_dir).as_posix()
 
         except StopIteration:
             raise HTTPException(422, 'Container has no Dockerfile')
@@ -83,7 +85,8 @@ def save_file(db_container: Container, filename: str, file: bytes):
         with open(os.path.join(db_container.get_abs_path(), filename), 'wb') as fp:
             fp.write(file)
 
-        db_container.dockerfile_path = os.path.join(db_container.get_path(), filename)
+        db_container.dockerfile_path = os.path.join(
+            db_container.get_path(), filename)
 
 
 @router.post("/", response_model=container.Container)
@@ -99,7 +102,6 @@ def create_container(
         user: User = Depends(token_auth),
         db: Session = Depends(session)
 ):
-
     db_container = Container(
         user_id=user.id,
         name=name,
@@ -133,7 +135,8 @@ def get_container(container_id: int, db: Session = Depends(session)):
         db.query(Container).get(container_id)
     )
 
-    tags: List[str] = db.query(Tag.tag_name).join(ContainerTags).filter_by(container_id=container_id).all()
+    tags: List[str] = db.query(Tag.tag_name).join(
+        ContainerTags).filter_by(container_id=container_id).all()
     container_schema.tags = [t[0] for t in tags]
 
     return container_schema
