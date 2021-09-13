@@ -38,7 +38,7 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
         job: PipelineJob = create_job(db, run_id, node_id)
 
         if not (build := job.node.container.build):
-            # Build exists, even those the image doesn't, which causes an error
+            # Build exists, even though the image doesn't, which causes an error
             # TODO: ABORT AND BUILD
             print('Cant run node because container is not built')
             return
@@ -49,7 +49,6 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
         else:
             src_subdir = 'input'
             prev = db.query(PipelineRun).get(run_id)
-
         models.utils.copy_model_fs(prev, job, src_subdir=src_subdir)
         volumes = get_volumes(job)
         environment = get_environment(job)

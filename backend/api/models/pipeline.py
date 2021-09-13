@@ -30,7 +30,7 @@ class Pipeline(Base):
         graph = DiGraph()
         graph.add_nodes_from([v.id for v in self.nodes])
         graph.add_edges_from([(e.from_node_id, e.to_node_id)
-                             for e in self.links])
+                              for e in self.links])
 
         return graph
 

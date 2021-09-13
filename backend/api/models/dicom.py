@@ -18,7 +18,7 @@ class DicomNode(PathMixin, Base):
     first_connected = Column(DateTime)
     last_connected = Column(DateTime)
 
-    # Null user ID means DicomNode is available globally 
+    # Null user ID means DicomNode is available globally
     user_id = Column(Integer, ForeignKey("user.id"), nullable=True)
     patients = relationship('DicomPatient', backref='node')
     user = relationship('User', backref='dicom_nodes')
@@ -46,7 +46,8 @@ class DicomPatient(NestedPathMixin, Base):
 
 
 class DicomStudy(NestedPathMixin, Base):
-    dicom_patient_id = Column(Integer, ForeignKey("dicom_patient.id", **CASCADE))
+    dicom_patient_id = Column(
+        Integer, ForeignKey("dicom_patient.id", **CASCADE))
     study_instance_uid = Column(String)
     study_date = Column(DateTime)
 

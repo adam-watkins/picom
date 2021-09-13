@@ -30,6 +30,8 @@ services:
       - ./backend:/backend # for auto reloading and code persistency
       - ./uploads:/app/uploads
       - /var/run/docker.sock:/var/run/docker.sock
+    links:
+      - 'orthanc' # explicit link, need a proxy for 127.0.0.1 for orthanc server
 
   api:
     build: ./backend

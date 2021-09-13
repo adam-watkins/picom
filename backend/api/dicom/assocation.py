@@ -1,6 +1,7 @@
 from typing import Union, List
+import docker
 
-from pynetdicom import AE, AllStoragePresentationContexts
+from pynetdicom import AE, AllStoragePresentationContexts, debug_logger
 
 from api import config
 from api.models.dicom import DicomNode
@@ -36,8 +37,19 @@ class Association:
             ae.requested_contexts = self.contexts
         else:
             ae.add_requested_context(self.contexts)
+        # Docker container cannot make DICOM association via localhost/127.0.0.1
+        # Must explicitly make request to the orthanc docker IP
+        # TODO: This is a quick fix, compose a network layer between orthanc and worker node to communicate via localhost
+        if self.ae_title == 'orthanc':
+            client = docker.DockerClient()
+            container = client.containers.get("orthanc")
+            ip_addr = container.attrs['NetworkSettings']['Networks']['raiven_default']['IPAddress']
+            self.host = ip_addr
+            print('host ip', self.host)
+        assoc = ae.associate(addr=self.host, port=self.port,
+                             ae_title=self.ae_title, **self.kwargs)
 
-        assoc = ae.associate(addr=self.host, port=self.port, ae_title=self.ae_title, **self.kwargs)
+        print('assoc.is_established', assoc.is_established)
 
         if not assoc.is_established:
             raise AssociationException(ae_title=self.ae_title)
