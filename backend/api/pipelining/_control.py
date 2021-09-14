@@ -12,6 +12,7 @@ def run_test_task():
 
 
 class ContainerController:
+    """Class that houses the controllers for building containers"""
 
     @staticmethod
     def build_container(container_id: int, priority: int = 1):
@@ -20,15 +21,25 @@ class ContainerController:
 
 
 class PipelineController:
+    """Class that houses the controllers for running and creating pipeline runs"""
 
     @staticmethod
     def run_pipeline_task(db, pipeline_run: PipelineRun, priority: int = 1) -> bool:
+        """Run a specific Pipeline with default priority of 1
+        For each starting node in  the pipeline, the node task is enqueued onto the worker node
+        Args:
+            db: Database session (dependency injection)
+            pipeline_run: PipelineRun to run
+            priority (int): Priority in the queue
+        Returns:
+            Bool: Currently, always returns true
+        """
         pipeline_run.status = 'running'
         pipeline_run.save(db)
         db.commit()
         # DEBUG
         print('pipeline_run', pipeline_run)
-        print('pipeline_run pipeline', pipeline_run.pipeline)
+        print('pipeline_run pipeline', pipeline_run.pipeline.get_starting_nodes())
         for node in pipeline_run.pipeline.get_starting_nodes():
             print('node', node)
             task = run.dicom_output_task if node.container_is_output else run.run_node_task
@@ -54,10 +65,22 @@ class PipelineController:
 
     @staticmethod
     def pipeline_run_factory(db, dicom_cls, dicom_obj_id, pipeline_id) -> PipelineRun:
+        """Create and return a PipelineRun instance
+        In the process, also copies the input/output folder from upload jobs to upload runs
+
+        Args:
+            db: Database session (dependency injection)
+            dicom_cls: Dicom Class to Query
+            dicom_obj_id (int): Object ID
+            pipeline_id (int): Pipeline ID to run
+        Returns:
+            PipelineRun: Instance of Pipeline to run
+        """
         pipeline_run = PipelineRun(pipeline_id=pipeline_id)
         pipeline_run.save(db)
 
         input_data_model = dicom_cls.query(db).get(dicom_obj_id)
+        print('input data', input_data_model)
         utils.copy_model_fs(input_data_model, pipeline_run)
 
         return pipeline_run

@@ -15,9 +15,16 @@ def run_ingest_task(folder: str, dicom_node_id: int, user_id: int = None):
     The models will automatically create the folders because they inherit from NestedPathMixin found in database.py
     Speed can be improved by starting query from series (requires joins) but will cut the avg amount of queries down
     from n=4 to n=1. Calculating the storage path could be faster by not using lazy relationships in the NestedPathMixin
+    Args:
+        folder:
+        dicom_node_id:
+        user_id:
+    Returns:
+        None
     """
     print("BACKEND INGEST")
     folder = pathlib.Path(config.UPLOAD_DIR) / folder
+    print('folder', folder)
 
     with worker_session() as db:
         node: DicomNode = db.query(DicomNode).get(dicom_node_id)

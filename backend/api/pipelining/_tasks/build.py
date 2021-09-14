@@ -21,18 +21,21 @@ def build_container_task(container_id: int):
         tag = utils.validate_tag(container_build.generate_tag())
 
     try:
-        image, build_logs = docker.images.build(rm=True, path=build_path, tag=tag)
+        print('path', build_path)
+        print('tag', tag)
+        image, build_logs = docker.images.build(
+            rm=True, path=build_path, tag=tag)
     except (BuildError, APIError) as e:
         with worker_session() as db:
             container_build.status = 'exited'
             container_build.exit_code = 1
             container_build.save(db)
 
-            ContainerBuildError(container_build_id=container_build.id, stderr=str(e)).save(db)
+            ContainerBuildError(
+                container_build_id=container_build.id, stderr=str(e)).save(db)
     else:
         with worker_session() as db:
             container_build.status = 'exited'
             container_build.exit_code = 0
             container_build.tag = image.tags[0]
             container_build.save(db)
-

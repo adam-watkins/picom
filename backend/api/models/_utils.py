@@ -1,10 +1,11 @@
 import pathlib
 from shutil import copytree
 
+from api import config
 from . import NestedPathMixin, IOPathMixin
 
 
-def copy_model_fs(src: NestedPathMixin, dst: IOPathMixin, dst_subdir='input', src_subdir='output'):
+def copy_model_fs(src: NestedPathMixin, dst: IOPathMixin, dst_subdir='input', src_subdir='output', final_node=False):
     """
     This function can be used to copy a model underlying folder (eg: a input or output folder) to the underlying folder
     of another model
@@ -16,6 +17,15 @@ def copy_model_fs(src: NestedPathMixin, dst: IOPathMixin, dst_subdir='input', sr
 
     src_dir = pathlib.Path(src.get_abs_path(subdir=src_subdir)).resolve()
     dst_dir = pathlib.Path(dst.get_abs_path(subdir=dst_subdir)).resolve()
+
+    if final_node:
+        #
+        src_dir = str(src_dir)
+        src_prefix = src_dir[:len(config.PIPELINE_OUTPUT_PRE_DIR)]
+        src_suffix = src_dir[-len(config.PIPELINE_OUTPUT_SUF_DIR):]
+        src_id = src_dir[:-len(config.PIPELINE_OUTPUT_SUF_DIR)][27:]
+        src_id = int(src_id) - 1
+        src_dir = src_prefix + str(src_id) + src_suffix
 
     print(f"COPYING {src_dir} to {dst_dir}")
     copytree(src_dir, dst_dir, dirs_exist_ok=True)
