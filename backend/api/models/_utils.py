@@ -37,7 +37,6 @@ def copy_model_fs(src: NestedPathMixin, dst: IOPathMixin, dst_subdir='input', sr
     dst_dir = pathlib.Path(dst.get_abs_path(subdir=dst_subdir)).resolve()
 
     if final_node:
-        # TODO: Write a test case to verify correctness
         src_dir = fix_output_dir(src_dir)
 
     print(f"COPYING {src_dir} to {dst_dir}")

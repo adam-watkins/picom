@@ -26,8 +26,6 @@ def get_volumes(job: PipelineJob) -> dict:
     """ Creates the volumes to be mounted to the running container """
 
     return {
-        # TODO: Fix issues
-        # This might where the bug is, the path points to an input folder that is empty
         HOST_PATH_TYPE(job.get_volume_abs_input_path()): {'bind': config.RAIVEN_INPUT_DIR, 'mode': 'ro'},
         HOST_PATH_TYPE(job.get_volume_abs_output_path()): {'bind': config.RAIVEN_OUTPUT_DIR, 'mode': 'rw'}
     }

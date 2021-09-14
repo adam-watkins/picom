@@ -49,17 +49,9 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
         else:
             src_subdir = 'input'
             prev = db.query(PipelineRun).get(run_id)
-        print('prev', prev)
-        print('job', job)
-        print('src_subdir', src_subdir)
         models.utils.copy_model_fs(prev, job, src_subdir=src_subdir)
         volumes = get_volumes(job)
         environment = get_environment(job)
-        print('v type', type(volumes))
-        print('e type', type(environment))
-        print('build tag', build.tag)
-        print('volumes', volumes)
-        print('environment', environment)
 
         # If the user cleared/pruned their unused images, it cannot find the container image to run
         # TODO: Handle case when the container image is deleted, and rebuild before running
