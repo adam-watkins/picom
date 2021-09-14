@@ -1,6 +1,6 @@
 from typing import Union, List
 
-from pynetdicom import AE, AllStoragePresentationContexts, debug_logger
+from pynetdicom import AE, AllStoragePresentationContexts
 
 from api import config
 from api.models.dicom import DicomNode
@@ -42,8 +42,6 @@ class Association:
             self.host = self.ae_title
         assoc = ae.associate(addr=self.host, port=self.port,
                              ae_title=self.ae_title, **self.kwargs)
-
-        print('assoc.is_established', assoc.is_established)
 
         if not assoc.is_established:
             raise AssociationException(ae_title=self.ae_title)

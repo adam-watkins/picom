@@ -21,8 +21,6 @@ def build_container_task(container_id: int):
         tag = utils.validate_tag(container_build.generate_tag())
 
     try:
-        print('path', build_path)
-        print('tag', tag)
         image, build_logs = docker.images.build(
             rm=True, path=build_path, tag=tag)
     except (BuildError, APIError) as e:

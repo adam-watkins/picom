@@ -86,7 +86,7 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
 
 
 # for testing purposes, revert back to 3 in production
-@dramatiq.actor(max_retries=1)
+@dramatiq.actor(max_retries=3)
 def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
     with worker_session() as db:
         job: PipelineJob = create_job(db, run_id, node_id)

@@ -37,11 +37,7 @@ class PipelineController:
         pipeline_run.status = 'running'
         pipeline_run.save(db)
         db.commit()
-        # DEBUG
-        print('pipeline_run', pipeline_run)
-        print('pipeline_run pipeline', pipeline_run.pipeline.get_starting_nodes())
         for node in pipeline_run.pipeline.get_starting_nodes():
-            print('node', node)
             task = run.dicom_output_task if node.container_is_output else run.run_node_task
             args = pipeline_run.id, node.id
 
@@ -80,7 +76,6 @@ class PipelineController:
         pipeline_run.save(db)
 
         input_data_model = dicom_cls.query(db).get(dicom_obj_id)
-        print('input data', input_data_model)
         utils.copy_model_fs(input_data_model, pipeline_run)
 
         return pipeline_run

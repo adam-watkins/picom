@@ -137,12 +137,9 @@ class PipelineJob(IOPathMixin, TimestampMixin, Base):
     error = relationship('PipelineJobError', backref="job", uselist=False)
 
     def get_volume_abs_input_path(self):
-        print('Test Path', pathlib.Path(config.UPLOAD_VOLUME_ABSPATH))
-        print('TestPath Slash', self.input_path)
         return pathlib.Path(config.UPLOAD_VOLUME_ABSPATH) / self.input_path
 
     def get_volume_abs_output_path(self):
-        print('TestPath Out Slash', self.output_path)
         return pathlib.Path(config.UPLOAD_VOLUME_ABSPATH) / self.output_path
 
     def __repr__(self, **kwargs) -> str:

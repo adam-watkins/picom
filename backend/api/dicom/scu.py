@@ -17,7 +17,6 @@ def send_dicom_folder(dest: DicomNode, abs_dicom_folder: str):
 
     try:
         with Association(dest, StoragePresentationContexts) as assoc:
-            print('abs_dicom_fol', abs_dicom_folder)
             for root, _, files in os.walk(abs_dicom_folder):
                 for file in files:
                     if file.endswith('.dcm'):
