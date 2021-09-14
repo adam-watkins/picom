@@ -6,7 +6,7 @@ class DatabaseService:
         self._db = db
 
     def __enter__(self):
-        """ Contextmanager to handle database connection """
+        """Contextmanager to handle database connection"""
         self._db = SessionLocal()
         return self
 

@@ -4,14 +4,16 @@ from shutil import copytree
 from . import NestedPathMixin, IOPathMixin
 
 
-def copy_model_fs(src: NestedPathMixin, dst: IOPathMixin, dst_subdir='input', src_subdir='output'):
+def copy_model_fs(
+    src: NestedPathMixin, dst: IOPathMixin, dst_subdir="input", src_subdir="output"
+):
     """
     This function can be used to copy a model underlying folder (eg: a input or output folder) to the underlying folder
     of another model
     """
-    if src_subdir not in ['input', 'output']:
+    if src_subdir not in ["input", "output"]:
         ValueError('src_subdir kwarg can only be "input" or "output"')
-    if dst_subdir not in ['input', 'output']:
+    if dst_subdir not in ["input", "output"]:
         ValueError('dst_subdir kwarg can only be "input" or "output"')
 
     src_dir = pathlib.Path(src.get_abs_path(subdir=src_subdir)).resolve()
@@ -23,6 +25,6 @@ def copy_model_fs(src: NestedPathMixin, dst: IOPathMixin, dst_subdir='input', sr
 
 def strip_prefix(str_: str, prefix: str):
     if str_.startswith(prefix):
-        str_ = str_[len(prefix):]
+        str_ = str_[len(prefix) :]
 
     return str_

@@ -11,7 +11,7 @@ from inflection import underscore, pluralize
 
 from api import config
 
-CASCADE = {'ondelete': 'CASCADE'}
+CASCADE = {"ondelete": "CASCADE"}
 
 
 class _Base:
@@ -54,7 +54,7 @@ class _Base:
             raise
 
     def __repr__(self, **kwargs) -> str:
-        info = ''.join(f'{k}={v} ' for k, v in kwargs.items()).strip()
+        info = "".join(f"{k}={v} " for k, v in kwargs.items()).strip()
         return f'<{self.__class__.__name__} id={self.id}{" " if info else ""}{info}>'
 
 
@@ -62,19 +62,20 @@ Base = declarative_base(cls=_Base)
 
 
 class NestedPathMixin(object):
-
     @staticmethod
     def to_abs_path(rel_path):
         return os.path.join(config.UPLOAD_DIR, rel_path)
 
     def get_path(self) -> str:
-        raise NotImplementedError(f"{type(self)} must implement get_path as it is a subclass of NestedPathMixin")
+        raise NotImplementedError(
+            f"{type(self)} must implement get_path as it is a subclass of NestedPathMixin"
+        )
 
     def get_abs_path(self, **kwargs) -> str:
         return self.to_abs_path(self.get_path())
 
     def save(self, *args, **kwargs):
-        """ Will Create a new directory upon completion """
+        """Will Create a new directory upon completion"""
 
         super().save(*args, **kwargs)
         if not os.path.exists(path := self.get_abs_path()):
@@ -83,7 +84,7 @@ class NestedPathMixin(object):
         return self
 
     def delete(self, *args, **kwargs):
-        """ Will Delete a new directory upon completion """
+        """Will Delete a new directory upon completion"""
 
         super().delete(*args, **kwargs)
         if os.path.exists(path := self.get_abs_path()):
@@ -91,10 +92,9 @@ class NestedPathMixin(object):
 
 
 class PathMixin(NestedPathMixin):
-
     @declared_attr
     def __directory__(self) -> str:
-        """ The naming scheme for the folder containing all the objects """
+        """The naming scheme for the folder containing all the objects"""
 
         return pluralize(self.__tablename__)
 
@@ -104,7 +104,7 @@ class PathMixin(NestedPathMixin):
 
     def get_path(self) -> pathlib.Path:
         if not self.id:
-            raise Exception('The object needs to be first saved in the db')
+            raise Exception("The object needs to be first saved in the db")
 
         return pathlib.Path(self.__directory__) / str(self.id)
 
@@ -135,9 +135,9 @@ class IOPathMixin(PathMixin):
         return self
 
     def get_abs_path(self, subdir: str = None) -> str:
-        if subdir == 'input':
+        if subdir == "input":
             return self.get_abs_input_path()
-        elif subdir == 'output':
+        elif subdir == "output":
             return self.get_abs_output_path()
         else:
             return super().get_abs_path()

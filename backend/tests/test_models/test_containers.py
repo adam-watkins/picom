@@ -9,8 +9,10 @@ from tests import testing_session, utils
 
 # noinspection DuplicatedCode
 def test_container_create_zip(db):
-    assert os.path.exists(mock_path := os.path.join(os.path.dirname(__file__), 'mock_data'))
-    assert os.path.exists(file_path := os.path.join(mock_path, 'simple_container.zip'))
+    assert os.path.exists(
+        mock_path := os.path.join(os.path.dirname(__file__), "mock_data")
+    )
+    assert os.path.exists(file_path := os.path.join(mock_path, "simple_container.zip"))
     assert os.path.isfile(file_path)
 
     container = create_and_test_container(db, file_path)
@@ -19,27 +21,29 @@ def test_container_create_zip(db):
 
 
 def create_and_test_container(db, file_path, **kwargs):
-    with open(file_path, 'rb') as fp:
+    with open(file_path, "rb") as fp:
         data = fp.read()
 
     container = create_container(
-        auto_build=kwargs.get('auto_build', False),
+        auto_build=kwargs.get("auto_build", False),
         file=data,
-        name=kwargs.get('name', 'test_container_create_zip'),
-        filename=kwargs.get('filename', 'simple_container.zip'),
-        description=kwargs.get('description', 'A simple container'),
-        is_input_container=kwargs.get('is_input_container', False),
-        is_output_container=kwargs.get('is_output_container', False),
-        is_shared=kwargs.get('is_shared', False),
+        name=kwargs.get("name", "test_container_create_zip"),
+        filename=kwargs.get("filename", "simple_container.zip"),
+        description=kwargs.get("description", "A simple container"),
+        is_input_container=kwargs.get("is_input_container", False),
+        is_output_container=kwargs.get("is_output_container", False),
+        is_shared=kwargs.get("is_shared", False),
         user=utils.get_test_user(db),
-        db=db
+        db=db,
     )
 
     assert type(container) is not list
     assert type(container) is Container
     assert pathlib.Path(container.get_abs_path()).exists()
     assert not pathlib.Path(container.get_path()).is_absolute()
-    assert container.dockerfile_path == pathlib.Path(container.dockerfile_path).as_posix()
+    assert (
+        container.dockerfile_path == pathlib.Path(container.dockerfile_path).as_posix()
+    )
     return container
 
 

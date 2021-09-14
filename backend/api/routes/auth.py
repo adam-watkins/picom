@@ -12,12 +12,16 @@ ldap = LDAPManager()
 
 
 class LoginException(HTTPException):
-    def __init__(self, status_code=401, detail="Incorrect username or password", **kwargs):
+    def __init__(
+        self, status_code=401, detail="Incorrect username or password", **kwargs
+    ):
         super().__init__(status_code, detail, **kwargs)
 
 
 @router.post("/token", response_model=Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(session)):
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(session)
+):
     username = form_data.username
     password = form_data.password
     user = User.query(db).filter_by(username=username).first()

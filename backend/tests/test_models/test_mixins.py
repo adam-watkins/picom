@@ -27,4 +27,3 @@ def test_path_mixin():
     assert mixin.__directory__
     assert mixin.__absolute_directory__
     assert pathlib.Path(mixin.__absolute_directory__)
-

@@ -29,35 +29,54 @@ def run_ingest_task(folder: str, dicom_node_id: int, user_id: int = None):
         # Update the node to be an input node
         node.input = True
 
-        for file_path in folder.glob('**/*.dcm'):
+        for file_path in folder.glob("**/*.dcm"):
             ds = dcmread(str(file_path))
 
-            if not (patient := db.query(DicomPatient).filter_by(dicom_node_id=node.id, patient_id=ds.PatientID).first()):
+            if not (
+                patient := db.query(DicomPatient)
+                .filter_by(dicom_node_id=node.id, patient_id=ds.PatientID)
+                .first()
+            ):
                 patient = DicomPatient(dicom_node_id=node.id, patient_id=ds.PatientID)
                 patient.save(db)
 
-            if not (study := db.query(DicomStudy).filter_by(dicom_patient_id=patient.id, study_instance_uid=ds.StudyInstanceUID).first()):
+            if not (
+                study := db.query(DicomStudy)
+                .filter_by(
+                    dicom_patient_id=patient.id, study_instance_uid=ds.StudyInstanceUID
+                )
+                .first()
+            ):
                 study = DicomStudy(
                     dicom_patient_id=patient.id,
                     study_instance_uid=ds.StudyInstanceUID,
-                    study_date=datetime.strptime(ds.StudyDate + ds.StudyTime, '%Y%m%d%H%M%S')
+                    study_date=datetime.strptime(
+                        ds.StudyDate + ds.StudyTime, "%Y%m%d%H%M%S"
+                    ),
                 )
                 study.save(db)
 
-            if not (series := db.query(DicomSeries).filter_by(dicom_study_id=study.id, series_instance_uid=ds.SeriesInstanceUID).first()):
+            if not (
+                series := db.query(DicomSeries)
+                .filter_by(
+                    dicom_study_id=study.id, series_instance_uid=ds.SeriesInstanceUID
+                )
+                .first()
+            ):
                 series = DicomSeries(
                     dicom_study_id=study.id,
                     series_instance_uid=ds.SeriesInstanceUID,
                     # TODO: Add a series description table
                     series_description=ds.SeriesDescription,
                     modality=ds.Modality,
-                    date_received=datetime.today()
-
+                    date_received=datetime.today(),
                 )
                 series.save(db)
 
             # Grab the save path so we can release the session connection
-            save_path = pathlib.Path(series.get_abs_path()) / (ds.SOPInstanceUID + '.dcm')
+            save_path = pathlib.Path(series.get_abs_path()) / (
+                ds.SOPInstanceUID + ".dcm"
+            )
             shutil.move(file_path, save_path)
         db.commit()
 
@@ -65,7 +84,11 @@ def run_ingest_task(folder: str, dicom_node_id: int, user_id: int = None):
 
 
 def update_or_create_user_node(db, global_node: DicomNode, user_id: int) -> DicomNode:
-    if node := DicomNode.query(db).filter_by(title=global_node.title, host=global_node.host, user_id=user_id).first():
+    if (
+        node := DicomNode.query(db)
+        .filter_by(title=global_node.title, host=global_node.host, user_id=user_id)
+        .first()
+    ):
         node.last_connected = datetime.utcnow()
     else:
         node = DicomNode(
@@ -79,4 +102,3 @@ def update_or_create_user_node(db, global_node: DicomNode, user_id: int) -> Dico
         ).save(db)
 
     return node
-

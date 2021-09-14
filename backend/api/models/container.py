@@ -23,8 +23,8 @@ class Container(PathMixin, Base):
     description = Column(String)
     filename = Column(String)
 
-    build = relationship('ContainerBuild', backref='container', uselist=False)
-    user = relationship('User', backref='container', uselist=False)
+    build = relationship("ContainerBuild", backref="container", uselist=False)
+    user = relationship("User", backref="container", uselist=False)
     tags = relationship("Tag", secondary="container_tags")
 
     @property
@@ -42,14 +42,16 @@ class ContainerBuild(TimestampMixin, Base):
     status = Column(String)
     tag = Column(String)
 
-    error = relationship('ContainerBuildError', uselist=False, backref='build')
+    error = relationship("ContainerBuildError", uselist=False, backref="build")
 
     @property
     def is_success(self):
         return self.exit_code == 0
 
     def generate_tag(self) -> str:
-        return f'{config.IMAGE_TAG_PREFIX}.{self.container.name.strip()}.{self.container.id}'.replace(' ', '')
+        return f"{config.IMAGE_TAG_PREFIX}.{self.container.name.strip()}.{self.container.id}".replace(
+            " ", ""
+        )
 
 
 class ContainerBuildError(Base):
