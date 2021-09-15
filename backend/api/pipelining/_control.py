@@ -83,7 +83,7 @@ class PipelineController:
         pipeline_run.save(db)
 
         input_data_model = dicom_cls.query(db).get(dicom_obj_id)
-        print('pipeline_run_factory')
+        print("pipeline_run_factory")
         utils.copy_model_fs(input_data_model, pipeline_run)
 
         return pipeline_run
