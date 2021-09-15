@@ -2,8 +2,8 @@ import os
 import pydicom
 from pydicom import dcmread
 
-INPUT_DIR = os.environ['RAIVEN_INPUT_DIR']
-OUTPUT_DIR = os.environ['RAIVEN_OUTPUT_DIR']
+INPUT_DIR = os.environ["RAIVEN_INPUT_DIR"]
+OUTPUT_DIR = os.environ["RAIVEN_OUTPUT_DIR"]
 
 
 def person_names_callback(dataset, data_element):
@@ -22,23 +22,23 @@ def anonymize_ds(dataset):
     dataset.walk(curves_callback)
     dataset.remove_private_tags()
 
-    if 'OtherPatientIDs' in dataset:
-        delattr(dataset, 'OtherPatientIDs')
+    if "OtherPatientIDs" in dataset:
+        delattr(dataset, "OtherPatientIDs")
 
-    if 'OtherPatientIDsSequence' in dataset:
+    if "OtherPatientIDsSequence" in dataset:
         del dataset.OtherPatientIDsSequence
 
-    tag = 'PatientBirthDate'
+    tag = "PatientBirthDate"
     if tag in dataset:
-        dataset.data_element(tag).value = '19000101'
+        dataset.data_element(tag).value = "19000101"
 
     return dataset
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     for root, dirs, files in os.walk(INPUT_DIR):
         for file in files:
-            if file.endswith('.dcm'):
+            if file.endswith(".dcm"):
                 ds = dcmread(os.path.join(root, file))
                 ds = anonymize_ds(ds)
                 ds.save_as(os.path.join(OUTPUT_DIR, file))
