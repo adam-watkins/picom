@@ -3,10 +3,22 @@ import pathlib
 
 from api import config, worker_session, models
 from api.dicom.scu import send_dicom_folder
-from api.models.pipeline import PipelineRun, PipelineJob, PipelineJobError, PipelineNode, PipelineRunResultFile
+from api.models.pipeline import (
+    PipelineRun,
+    PipelineJob,
+    PipelineJobError,
+    PipelineNode,
+    PipelineRunResultFile,
+)
 
 from . import docker, dramatiq
-from .utils import get_volumes, get_environment, create_job, mark_job_complete, mark_run_complete
+from .utils import (
+    get_volumes,
+    get_environment,
+    create_job,
+    mark_job_complete,
+    mark_run_complete,
+)
 
 
 def _run_next_nodes(job: PipelineJob, run_id: int):
@@ -15,8 +27,7 @@ def _run_next_nodes(job: PipelineJob, run_id: int):
         try:
             # TODO: Clean this up variable naming
             if node.container_is_output:
-                dicom_output_task.send_with_options(
-                    args=(run_id, node.id, job.id))
+                dicom_output_task.send_with_options(args=(run_id, node.id, job.id))
             else:
                 run_node_task.send_with_options(args=(run_id, node.id, job.id))
         except Exception as e:
@@ -39,14 +50,14 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
 
         if not (build := job.node.container.build):
             # TODO: ABORT AND BUILD
-            print('Cant run node because container is not built')
+            print("Cant run node because container is not built")
             return
 
         if previous_job_id:
-            src_subdir = 'output'
+            src_subdir = "output"
             prev = db.query(PipelineJob).get(previous_job_id)
         else:
-            src_subdir = 'input'
+            src_subdir = "input"
             prev = db.query(PipelineRun).get(run_id)
 
         models.utils.copy_model_fs(prev, job, src_subdir=src_subdir)
@@ -58,20 +69,20 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
             detach=True,
             volumes=volumes,
             environment=environment,
-            labels=['Raiven']
+            labels=["Raiven"],
         )
 
-        job.update(db, status='running')
+        job.update(db, status="running")
         db.commit()
 
         # Long running task
-        print('Waiting for container')
-        exit_code = container.wait()['StatusCode']
-        print('Container finished with exit code', exit_code)
+        print("Waiting for container")
+        exit_code = container.wait()["StatusCode"]
+        print("Container finished with exit code", exit_code)
 
         job = mark_job_complete(db, job, exit_code=exit_code, stderr=container)
         if job.exit_code != 0:
-            mark_run_complete(db, job, status='error')
+            mark_run_complete(db, job, status="error")
 
         elif job.node.is_leaf_node():
             post_run_cleanup(db, job)
@@ -89,9 +100,10 @@ def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
         job = create_job(db, run_id, node_id)
 
         if not (dest := job.node.destination):
-            job.update(db, status='failed', exit_code=-1)
-            PipelineJobError(pipeline_job_id=job.id,
-                             stderr='No Destination for the pipeline').save(db)
+            job.update(db, status="failed", exit_code=-1)
+            PipelineJobError(
+                pipeline_job_id=job.id, stderr="No Destination for the pipeline"
+            ).save(db)
             return
 
         if previous_job_id:
@@ -113,7 +125,7 @@ def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
 
 
 def post_run_cleanup(db, job: PipelineJob):
-    print('Pipeline finished')
+    print("Pipeline finished")
     mark_run_complete(db, job)
 
     run: PipelineRun = job.run
@@ -123,5 +135,5 @@ def post_run_cleanup(db, job: PipelineJob):
             pipeline_run_id=run.id,
             filename=file.name,
             type=file.stem if file.is_file() else "folder",
-            path=str(file.relative_to(config.UPLOAD_DIR))
+            path=str(file.relative_to(config.UPLOAD_DIR)),
         ).save(db)
