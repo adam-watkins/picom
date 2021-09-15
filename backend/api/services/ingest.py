@@ -35,7 +35,10 @@ class DicomIngestService(DatabaseService):
             self._action = self._ingest_through_pipeline
 
         # Pushed to user or Globally
-        elif self.called_aet.startswith(config.USER_AE_PREFIX) or self.called_aet == config.SCP_AE_TITLE:
+        elif (
+            self.called_aet.startswith(config.USER_AE_PREFIX)
+            or self.called_aet == config.SCP_AE_TITLE
+        ):
             self._action = self._ingest_to_storage
 
         # Pushed to an undefined location
@@ -45,7 +48,9 @@ class DicomIngestService(DatabaseService):
     def __enter__(self):
         super().__enter__()
 
-        self.initiator_node = DicomNodeService(self._db).get_from_connection(self.calling_aet, self.calling_host)
+        self.initiator_node = DicomNodeService(self._db).get_from_connection(
+            self.calling_aet, self.calling_host
+        )
         assert self.initiator_node
 
         return self
@@ -56,7 +61,7 @@ class DicomIngestService(DatabaseService):
 
             # TODO: Better logging
             print("INFO: Empty ingested folder")
-            raise self.EmptyFolderException('An Ingest Folder Cannot Be Empty')
+            raise self.EmptyFolderException("An Ingest Folder Cannot Be Empty")
 
         self._action()
 
@@ -71,7 +76,7 @@ class DicomIngestService(DatabaseService):
         user = self._db.query(User).filter_by(username=username).first()
 
         if not user:
-            raise ValueError('User %s not found' % username)
+            raise ValueError("User %s not found" % username)
 
         return user.id
 
@@ -79,7 +84,7 @@ class DicomIngestService(DatabaseService):
         return DicomIngestController.ingest_to_storage(
             folder=self._get_rel_folder(),
             dicom_node_id=self.initiator_node.id,
-            user_id=self._get_user_id()
+            user_id=self._get_user_id(),
         )
 
     def _run_pipeline(self, pipeline, folder) -> bool:
@@ -87,12 +92,18 @@ class DicomIngestService(DatabaseService):
             db=self._db,
             pipeline_id=pipeline.id,
             folder=pathlib.Path(folder),
-            initiator_dicom_node_id=self.initiator_node.id
+            initiator_dicom_node_id=self.initiator_node.id,
         )
 
-    def _run_pipeline_bucket(self, pipeline, conditions_service: PipelineConditionService) -> bool:
-        print(f"Running folder through pipeline: '{pipeline.ae_title}' from storage bucket")
-        ret = self._run_pipeline(pipeline, conditions_service.storage_bucket.get_abs_path())
+    def _run_pipeline_bucket(
+        self, pipeline, conditions_service: PipelineConditionService
+    ) -> bool:
+        print(
+            f"Running folder through pipeline: '{pipeline.ae_title}' from storage bucket"
+        )
+        ret = self._run_pipeline(
+            pipeline, conditions_service.storage_bucket.get_abs_path()
+        )
         conditions_service.storage_bucket.delete(self._db)
 
         return ret
@@ -103,10 +114,14 @@ class DicomIngestService(DatabaseService):
         folder = self.folder
 
         if not pipeline:
-            raise ValueError(f"ERROR: Attempted to ingest to non-existant pipeline {ae_title}")
+            raise ValueError(
+                f"ERROR: Attempted to ingest to non-existant pipeline {ae_title}"
+            )
 
         # Evaluate Conditions to see if we should run the pipeline
-        conditions_service = PipelineConditionService(pipeline, self.initiator_node, self._db)
+        conditions_service = PipelineConditionService(
+            pipeline, self.initiator_node, self._db
+        )
         if conditions_service.has_conditions():
             conditions_service.add_series_to_storage_bucket(self.folder)
 
@@ -118,7 +133,9 @@ class DicomIngestService(DatabaseService):
                 return self._run_pipeline_bucket(pipeline, conditions_service)
 
             else:
-                print(f"Waiting for more files before running pipeline: '{pipeline.ae_title}'")
+                print(
+                    f"Waiting for more files before running pipeline: '{pipeline.ae_title}'"
+                )
                 return False
 
         # No condition, run pipeline

@@ -25,13 +25,13 @@ DIAG_LOCAL_LIMIT_EXCEEDED = 0x02
 
 
 def encode_aet(ae_title_bytes: bytes) -> str:
-    return str(ae_title_bytes, encoding='utf-8').strip()
+    return str(ae_title_bytes, encoding="utf-8").strip()
 
 
 def get_ae_titles(event):
     return (
         encode_aet(event.assoc.requestor.primitive.calling_ae_title),
-        encode_aet(event.assoc.requestor.primitive.called_ae_title)
+        encode_aet(event.assoc.requestor.primitive.called_ae_title),
     )
 
 
@@ -42,20 +42,30 @@ def handle_association_request(event):
         node_service.update_or_create_from_connection(
             title=requestor_ae_title,
             host=event.assoc.requestor.address,
-            implementation_version_name=encode_aet(event.assoc.requestor.implementation_version_name)
+            implementation_version_name=encode_aet(
+                event.assoc.requestor.implementation_version_name
+            ),
         )
 
     # TODO: Not in list of allowed connections and allow push to pipe
     if not is_valid_ae_title(called_ae_title):
-        event.assoc.acse.send_reject(REJECTED_PERMANENT, SOURCE_SERVICE_USER, DIAG_CALLED_AET_NOT_RECOGNIZED)
-        logger.log(f"REJECTED REQUEST ASSOCIATION FROM {requestor_ae_title} DUE TO UNKNOWN CALLED AET: {called_ae_title}")
+        event.assoc.acse.send_reject(
+            REJECTED_PERMANENT, SOURCE_SERVICE_USER, DIAG_CALLED_AET_NOT_RECOGNIZED
+        )
+        logger.log(
+            f"REJECTED REQUEST ASSOCIATION FROM {requestor_ae_title} DUE TO UNKNOWN CALLED AET: {called_ae_title}"
+        )
 
     # ALREADY CONNECTED
     elif requestor_ae_title in CONNECTIONS:
-        event.assoc.acse.send_reject(REJECTED_TRANSIENT, SOURCE_PROVIDER_USER, DIAG_LOCAL_LIMIT_EXCEEDED)
-        logger.log(f"REJECTED REQUEST ASSOCIATION FROM {requestor_ae_title} AS IT IS ALREADY CONNECTED")
+        event.assoc.acse.send_reject(
+            REJECTED_TRANSIENT, SOURCE_PROVIDER_USER, DIAG_LOCAL_LIMIT_EXCEEDED
+        )
+        logger.log(
+            f"REJECTED REQUEST ASSOCIATION FROM {requestor_ae_title} AS IT IS ALREADY CONNECTED"
+        )
     else:
-        path = pathlib.Path(config.UPLOAD_DIR) / 'tmp' / str(uuid.uuid1())
+        path = pathlib.Path(config.UPLOAD_DIR) / "tmp" / str(uuid.uuid1())
         CONNECTIONS[requestor_ae_title] = path
         path.mkdir(parents=True)
         logger.log(f"ACCEPTED REQUEST ASSOCIATION FROM {requestor_ae_title}")
@@ -69,10 +79,13 @@ def is_valid_ae_title(called_ae_title):
 
 
 def handle_association_release(event):
-    """ Upon release start a task for all the received files to be ingested into the db """
+    """Upon release start a task for all the received files to be ingested into the db"""
 
     requestor_ae_title, called_ae_title = get_ae_titles(event)
-    calling_host, calling_port = event.assoc.requestor.address, event.assoc.requestor.port
+    calling_host, calling_port = (
+        event.assoc.requestor.address,
+        event.assoc.requestor.port,
+    )
 
     if requestor_ae_title in CONNECTIONS:
         try:
@@ -80,12 +93,12 @@ def handle_association_release(event):
                 folder=CONNECTIONS[requestor_ae_title],
                 calling_aet=requestor_ae_title,
                 calling_host=calling_host,
-                called_aet=called_ae_title
+                called_aet=called_ae_title,
             ) as ingest:
                 ingest.execute()
 
         except DicomIngestController.EmptyFolderException:
-            """ No C Store was performed """
+            """No C Store was performed"""
             pass
         except Exception as e:
             print(e)
@@ -96,13 +109,15 @@ def handle_association_release(event):
 
 
 def handle_store(event):
-    """ Handles EVT_C_STORE """
+    """Handles EVT_C_STORE"""
     requestor_ae_title, called_ae_title = get_ae_titles(event)
 
-    path = CONNECTIONS[requestor_ae_title] / (event.request.AffectedSOPInstanceUID + '.dcm')
-    with open(path, 'wb') as f:
-        f.write(b'\x00' * 128)
-        f.write(b'DICM')
+    path = CONNECTIONS[requestor_ae_title] / (
+        event.request.AffectedSOPInstanceUID + ".dcm"
+    )
+    with open(path, "wb") as f:
+        f.write(b"\x00" * 128)
+        f.write(b"DICM")
         # TODO: check this is still needed
         # event.file_meta.TransferSyntaxUID = uid.ImplicitVRLittleEndian
         write_file_meta_info(f, event.file_meta)
@@ -118,7 +133,7 @@ class SCP:
         (evt.EVT_C_STORE, handle_store),
     ]
 
-    def __init__(self, ae_title='PICOM_SCP', host='localhost', port=11112, debug=False):
+    def __init__(self, ae_title="PICOM_SCP", host="localhost", port=11112, debug=False):
         self.ae_title = ae_title
         self.host = host
         self.port = port
@@ -135,7 +150,9 @@ class SCP:
         logger.info(msg)
         print(msg)
 
-        self._ae.start_server((self.host, self.port), block=blocking, evt_handlers=self._handlers)
+        self._ae.start_server(
+            (self.host, self.port), block=blocking, evt_handlers=self._handlers
+        )
 
     def stop_server(self):
         self._ae.shutdown()
@@ -144,7 +161,7 @@ class SCP:
         return self._ae
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("Starting server...")
     print("Waiting for connections...")
     scp = SCP()

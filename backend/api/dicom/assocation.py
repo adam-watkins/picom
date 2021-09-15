@@ -8,13 +8,18 @@ from api.models.dicom import DicomNode
 
 class AssociationException(Exception):
     def __init__(self, ae_title):
-        super().__init__(f'Association with {ae_title} could not be made.')
+        super().__init__(f"Association with {ae_title} could not be made.")
 
 
 class Association:
     __association = None
 
-    def __init__(self, scp: DicomNode, contexts: Union[str, List[str]] = AllStoragePresentationContexts, **kwargs):
+    def __init__(
+        self,
+        scp: DicomNode,
+        contexts: Union[str, List[str]] = AllStoragePresentationContexts,
+        **kwargs,
+    ):
         self.host = scp.host
         self.port = scp.port
         self.ae_title = scp.title
@@ -37,7 +42,9 @@ class Association:
         else:
             ae.add_requested_context(self.contexts)
 
-        assoc = ae.associate(addr=self.host, port=self.port, ae_title=self.ae_title, **self.kwargs)
+        assoc = ae.associate(
+            addr=self.host, port=self.port, ae_title=self.ae_title, **self.kwargs
+        )
 
         if not assoc.is_established:
             raise AssociationException(ae_title=self.ae_title)

@@ -16,16 +16,16 @@ def test_get_user_dicom_nodes(db, authorization_header):
     user_node = save_node_for_user_id(current_user.id, db)
     db.commit()
 
-    response = client.get(f'/dicom/nodes', headers=authorization_header)
+    response = client.get(f"/dicom/nodes", headers=authorization_header)
     data = response.json()
 
     assert response.status_code == 200
     assert len(data) == 2
     for node in data:
-        assert node['user_id'] in [global_node.user_id, user_node.user_id]
+        assert node["user_id"] in [global_node.user_id, user_node.user_id]
 
 
 def save_node_for_user_id(user_id: int, db: Session):
-    node = DicomNode(title='test', host='test', port='0000', user_id=user_id)
+    node = DicomNode(title="test", host="test", port="0000", user_id=user_id)
     node.save(db)
     return node

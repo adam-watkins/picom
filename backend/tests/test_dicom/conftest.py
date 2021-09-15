@@ -10,15 +10,16 @@ from pynetdicom.sop_class import VerificationSOPClass
 from api.dicom.scp import SCP
 from tests import config
 
-TMP_FOLDER = Path(__file__).parent / 'tmp'
-MOCK_DATA_DIR = Path(__file__).parent / 'mock_data'
+TMP_FOLDER = Path(__file__).parent / "tmp"
+MOCK_DATA_DIR = Path(__file__).parent / "mock_data"
 
 
 @pytest.fixture(scope="module", autouse="True")
 def scp_server():
-    scp_server = SCP(ae_title=config.SCP_AE_TITLE, host=config.SCP_HOST, port=config.SCP_PORT)
+    scp_server = SCP(
+        ae_title=config.SCP_AE_TITLE, host=config.SCP_HOST, port=config.SCP_PORT
+    )
     scp_server.start_server(blocking=False)
-
 
     yield
 
