@@ -1,4 +1,8 @@
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired
+from itsdangerous import (
+    TimedJSONWebSignatureSerializer as Serializer,
+    BadSignature,
+    SignatureExpired,
+)
 from passlib.hash import pbkdf2_sha256
 
 from sqlalchemy import *
@@ -20,11 +24,11 @@ class User(Base):
     last_seen = Column(DateTime, default=datetime.now)
     access_allowed = Column(Boolean, default=False)
 
-    ldap_user = relationship("UserLDAP", backref='user', uselist=False)
-    local_user = relationship("UserLocal", backref='user', uselist=False)
+    ldap_user = relationship("UserLDAP", backref="user", uselist=False)
+    local_user = relationship("UserLocal", backref="user", uselist=False)
 
     def generate_token(self) -> bytes:
-        return self.__serializer__.dumps({'id': self.id})
+        return self.__serializer__.dumps({"id": self.id})
 
     @staticmethod
     def verify_token(token) -> int:
@@ -35,7 +39,7 @@ class User(Base):
         except BadSignature:
             return None  # invalid token
         else:
-            return data['id']
+            return data["id"]
 
     @classmethod
     def _set_serializer(cls, secret_key, expiration):
@@ -43,7 +47,7 @@ class User(Base):
 
 
 class UserLDAP(Base):
-    id = Column(ForeignKey("user.id", ondelete="CASCADE"),  primary_key=True)
+    id = Column(ForeignKey("user.id", ondelete="CASCADE"), primary_key=True)
     title = Column(String)
     department = Column(String)
     company = Column(String)

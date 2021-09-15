@@ -2,7 +2,9 @@ from tests import config, models
 
 
 def get_default_user(db) -> models.user.User:
-    users = db.query(models.user.User).filter_by(username=config.INTERNAL_USERNAME).all()
+    users = (
+        db.query(models.user.User).filter_by(username=config.INTERNAL_USERNAME).all()
+    )
     assert len(users) == 1
     assert type(user := users[0]) == models.user.User
     assert user.username == config.INTERNAL_USERNAME

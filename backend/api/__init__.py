@@ -1,20 +1,19 @@
 import logging
+
 logger = logging.getLogger("uvicorn.error")
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import BaseConfig
+
 config = BaseConfig()
 
 from .database import session, worker_session, engine
 from . import models, schemas, sockets
 
 models.Base.metadata.create_all(bind=engine)
-app = FastAPI(
-    title='Raiven API',
-    docs_url='/'
-)
+app = FastAPI(title="Raiven API", docs_url="/")
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,7 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount('/ws', sockets.sio_app)
+app.mount("/ws", sockets.sio_app)
 
 from . import middleware, routes, pipelining, scripts
 

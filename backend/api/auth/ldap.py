@@ -8,7 +8,6 @@ from api.models.user import User, UserLDAP
 
 
 class LDAPManager:
-
     def __init__(self):
         self.server = Server(config.LDAP_HOST, config.LDAP_PORT)
         self.user_base = config.LDAP_USERNAME_BASE
@@ -34,8 +33,8 @@ class LDAPManager:
         search_filter = config.LDAP_SEARCH_FILTER
         connection.search(self.base_dn, (search_filter % username))
 
-        user_dn = connection.response[0]['dn']
-        user_obj = ObjectDef('user', connection)
+        user_dn = connection.response[0]["dn"]
+        user_obj = ObjectDef("user", connection)
 
         reader = Reader(connection, user_obj, user_dn)
         reader.search()

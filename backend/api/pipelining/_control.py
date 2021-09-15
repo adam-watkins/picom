@@ -17,7 +17,8 @@ class ContainerController:
     @staticmethod
     def build_container(container_id: int, priority: int = 1):
         build.build_container_task.send_with_options(
-            args=(container_id,), priority=priority)
+            args=(container_id,), priority=priority
+        )
 
 
 class PipelineController:
@@ -34,11 +35,13 @@ class PipelineController:
         Returns:
             Bool: Currently, always returns true
         """
-        pipeline_run.status = 'running'
+        pipeline_run.status = "running"
         pipeline_run.save(db)
         db.commit()
         for node in pipeline_run.pipeline.get_starting_nodes():
-            task = run.dicom_output_task if node.container_is_output else run.run_node_task
+            task = (
+                run.dicom_output_task if node.container_is_output else run.run_node_task
+            )
             args = pipeline_run.id, node.id
 
             task.send_with_options(args=args, priority=priority)
@@ -46,14 +49,18 @@ class PipelineController:
         return True
 
     @staticmethod
-    def run_pipeline_on_folder(db, pipeline_id: str, folder: pathlib.Path, initiator_dicom_node_id: int = None) -> bool:
+    def run_pipeline_on_folder(
+        db, pipeline_id: str, folder: pathlib.Path, initiator_dicom_node_id: int = None
+    ) -> bool:
         pipeline_run = PipelineRun(
-            pipeline_id=pipeline_id, initiator_id=initiator_dicom_node_id)
+            pipeline_id=pipeline_id, initiator_id=initiator_dicom_node_id
+        )
         pipeline_run.save(db)
 
         # Copy temp files to pipeline input and commit
-        shutil.copytree(folder.resolve(),
-                        pipeline_run.get_abs_input_path(), dirs_exist_ok=True)
+        shutil.copytree(
+            folder.resolve(), pipeline_run.get_abs_input_path(), dirs_exist_ok=True
+        )
         shutil.rmtree(folder.resolve())
         db.commit()
 
@@ -76,6 +83,7 @@ class PipelineController:
         pipeline_run.save(db)
 
         input_data_model = dicom_cls.query(db).get(dicom_obj_id)
+        print('pipeline_run_factory')
         utils.copy_model_fs(input_data_model, pipeline_run)
 
         return pipeline_run

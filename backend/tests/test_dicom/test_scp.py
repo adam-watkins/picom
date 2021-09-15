@@ -14,7 +14,10 @@ from api.queries.internal import get_return_to_sender
 from tests import client, config, models, mark, utils
 
 import logging
-from tests.test_models.test_containers import create_and_test_container, delete_and_test_container
+from tests.test_models.test_containers import (
+    create_and_test_container,
+    delete_and_test_container,
+)
 
 from tests.test_models.test_pipelines import insert_pipeline, LinearPipelineFactory
 from tests.test_pipelining.test_build import build_container_foreground
@@ -23,7 +26,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def join(broker, worker):
-    broker.join('default', fail_fast=True)
+    broker.join("default", fail_fast=True)
     worker.join()
 
 
@@ -44,37 +47,35 @@ def test_scp_sever_startup_and_shutdown():
 
 
 def test_scp_association():
-    ae = AE(ae_title='Test AE')
+    ae = AE(ae_title="Test AE")
     ae.add_requested_context(VerificationSOPClass)
 
-    assoc = ae.associate(config.SCP_HOST, config.SCP_PORT,
-                         ae_title=config.SCP_AE_TITLE)
+    assoc = ae.associate(config.SCP_HOST, config.SCP_PORT, ae_title=config.SCP_AE_TITLE)
     assert assoc.is_established
 
     assoc.release()
 
 
 def test_scp_association_rejected():
-    ae = AE(ae_title='Test AE')
+    ae = AE(ae_title="Test AE")
     ae.add_requested_context(VerificationSOPClass)
 
-    assoc = ae.associate(config.SCP_HOST, config.SCP_PORT,
-                         ae_title='randomAET')
+    assoc = ae.associate(config.SCP_HOST, config.SCP_PORT, ae_title="randomAET")
     assert not assoc.is_established
 
     assoc.release()
 
 
 def test_same_ae_connect():
-    ae = AE(ae_title='Test Multiple')
+    ae = AE(ae_title="Test Multiple")
     ae.add_requested_context(VerificationSOPClass)
 
-    assoc = ae.associate(config.SCP_HOST, config.SCP_PORT,
-                         ae_title=config.SCP_AE_TITLE)
+    assoc = ae.associate(config.SCP_HOST, config.SCP_PORT, ae_title=config.SCP_AE_TITLE)
     assert assoc.is_established
 
     assoc_fail = ae.associate(
-        config.SCP_HOST, config.SCP_PORT, ae_title=config.SCP_AE_TITLE)
+        config.SCP_HOST, config.SCP_PORT, ae_title=config.SCP_AE_TITLE
+    )
     assert not assoc_fail.is_established
 
     assoc.release()
@@ -82,22 +83,20 @@ def test_same_ae_connect():
 
 
 def test_scp_pipeline_association():
-    ae = AE(ae_title='Test AE')
+    ae = AE(ae_title="Test AE")
     ae.add_requested_context(VerificationSOPClass)
 
-    assoc = ae.associate(config.SCP_HOST, config.SCP_PORT,
-                         ae_title='RVP-my-pipe')
+    assoc = ae.associate(config.SCP_HOST, config.SCP_PORT, ae_title="RVP-my-pipe")
     assert assoc.is_established
 
     assoc.release()
 
 
 def test_echo():
-    ae = AE(ae_title='Test AE')
+    ae = AE(ae_title="Test AE")
     ae.add_requested_context(VerificationSOPClass)
 
-    association = ae.associate(
-        config.SCP_HOST, config.SCP_PORT, ae_title='RVU-Echo')
+    association = ae.associate(config.SCP_HOST, config.SCP_PORT, ae_title="RVU-Echo")
 
     assert association.is_established
 
@@ -112,18 +111,23 @@ def test_store_global(db, stub_broker, stub_worker):
     db.query(DicomNode).delete()
     db.commit()
 
-    assert os.path.exists(mock_path := os.path.join(
-        os.path.dirname(__file__), 'mock_data'))
+    assert os.path.exists(
+        mock_path := os.path.join(os.path.dirname(__file__), "mock_data")
+    )
     association = get_association_to_ae(config.SCP_AE_TITLE)
 
     uids_added = []
     for root, _, files in os.walk(mock_path):
         for file in files:
-            if file.endswith('.dcm'):
+            if file.endswith(".dcm"):
                 ds = dcmread(os.path.join(root, file))
                 uid = ds.SeriesInstanceUID
 
-                if series := models.dicom.DicomSeries.query(db).filter_by(series_instance_uid=uid).all():
+                if (
+                    series := models.dicom.DicomSeries.query(db)
+                    .filter_by(series_instance_uid=uid)
+                    .all()
+                ):
                     [s.delete(db) for s in series]
                     db.commit()
 
@@ -138,8 +142,11 @@ def test_store_global(db, stub_broker, stub_worker):
     assert (node := db.query(DicomNode).first())
     assert node.user_id is None  # Node should not be tied to one user
     for uid in uids_added:
-        assert models.dicom.DicomSeries.query(db).filter_by(series_instance_uid=uid).first(), \
-            f'Could not find series_instance_uid={uid} in db'
+        assert (
+            models.dicom.DicomSeries.query(db)
+            .filter_by(series_instance_uid=uid)
+            .first()
+        ), f"Could not find series_instance_uid={uid} in db"
 
 
 def test_store_valid_user(db, stub_broker, stub_worker):
@@ -149,7 +156,8 @@ def test_store_valid_user(db, stub_broker, stub_worker):
 
     # Send dicom to user
     association = get_association_to_ae(
-        config.USER_AE_PREFIX + utils.get_test_user(db).username)
+        config.USER_AE_PREFIX + utils.get_test_user(db).username
+    )
     perform_store(association)
     # Ensure detached SCP server has enough time to send job to worker before .join
     sleep(1)
@@ -182,8 +190,7 @@ def test_store_valid_pipeline_no_containers(db, stub_broker, stub_worker):
 
     init_pipeline_run_count = db.query(PipelineRun).count()
 
-    association = get_association_to_ae(
-        config.PIPELINE_AE_PREFIX + pipeline_ae_title)
+    association = get_association_to_ae(config.PIPELINE_AE_PREFIX + pipeline_ae_title)
     perform_store(association)
     join(stub_broker, stub_worker)
 
@@ -197,10 +204,10 @@ def test_store_valid_pipeline_no_containers(db, stub_broker, stub_worker):
 
 def test_store_pipeline_workflow(db, stub_broker, stub_worker, authorization_header):
     # Upload / build containers
-    assert os.path.exists(mock_path := os.path.join(
-        os.path.dirname(__file__), 'mock_data'))
-    assert os.path.exists(file_path := os.path.join(
-        mock_path, 'simple_container.zip'))
+    assert os.path.exists(
+        mock_path := os.path.join(os.path.dirname(__file__), "mock_data")
+    )
+    assert os.path.exists(file_path := os.path.join(mock_path, "simple_container.zip"))
     assert os.path.isfile(file_path)
 
     container = create_and_test_container(db, file_path)
@@ -216,8 +223,7 @@ def test_store_pipeline_workflow(db, stub_broker, stub_worker, authorization_hea
     db.commit()
 
     init_pipeline_run_count = db.query(PipelineRun).count()
-    association = get_association_to_ae(
-        config.PIPELINE_AE_PREFIX + pipeline_ae_title)
+    association = get_association_to_ae(config.PIPELINE_AE_PREFIX + pipeline_ae_title)
 
     perform_store(association)
     # Ensure detached SCP server has enough time to send job to worker before .join
@@ -242,18 +248,23 @@ def test_store_invalid_pipeline(db, stub_broker, stub_worker):
 
 @mark.not_written
 def test_store_same_instance(db, association):
-    assert os.path.exists(mock_path := os.path.join(
-        os.path.dirname(__file__), 'mock_data'))
+    assert os.path.exists(
+        mock_path := os.path.join(os.path.dirname(__file__), "mock_data")
+    )
 
     uid_list = []
     for root, _, files in os.walk(mock_path):
         for file in files:
-            if file.endswith('.dcm'):
+            if file.endswith(".dcm"):
                 ds = dcmread(os.path.join(root, file))
                 uid = ds.SeriesInstanceUID
                 uid_list.append(uid)
 
-                if series := models.dicom.DicomSeries.query(db).filter_by(series_instance_uid=uid).all():
+                if (
+                    series := models.dicom.DicomSeries.query(db)
+                    .filter_by(series_instance_uid=uid)
+                    .all()
+                ):
                     [s.delete(db) for s in series]
                     db.commit()
 
@@ -265,14 +276,20 @@ def test_store_same_instance(db, association):
 
     for uid in uid_list:
         # TODO: Should we be able to the same image twice?
-        assert len(models.dicom.DicomSeries.query(
-            db).filter_by(series_instance_uid=uid).all()) == 1
+        assert (
+            len(
+                models.dicom.DicomSeries.query(db)
+                .filter_by(series_instance_uid=uid)
+                .all()
+            )
+            == 1
+        )
 
 
 def get_association_to_ae(ae_title):
 
     # Create association to pipeline
-    ae = AE(ae_title='test')
+    ae = AE(ae_title="test")
     ae.requested_contexts = StoragePresentationContexts
     assoc = ae.associate(config.SCP_HOST, config.SCP_PORT, ae_title=ae_title)
 
@@ -280,12 +297,14 @@ def get_association_to_ae(ae_title):
     return assoc
 
 
-def perform_store(association, mock_path=os.path.join(os.path.dirname(__file__), 'mock_data')):
+def perform_store(
+    association, mock_path=os.path.join(os.path.dirname(__file__), "mock_data")
+):
     assert os.path.exists(mock_path)
 
     for root, _, files in os.walk(mock_path):
         for file in files:
-            if file.endswith('.dcm'):
+            if file.endswith(".dcm"):
                 ds = dcmread(os.path.join(root, file))
 
                 status = association.send_c_store(ds)
@@ -296,7 +315,7 @@ def perform_store(association, mock_path=os.path.join(os.path.dirname(__file__),
 
 def add_container_to_pipeline(container, pipeline, authorization_header):
     response = client.put(
-        f'/pipeline/{pipeline.id}',
+        f"/pipeline/{pipeline.id}",
         json={
             "pipeline_id": pipeline.id,
             "nodes": [
@@ -307,12 +326,12 @@ def add_container_to_pipeline(container, pipeline, authorization_header):
                     "y": 0,
                     "container_is_input": False,
                     "container_is_output": False,
-                    "destination_id": 0
+                    "destination_id": 0,
                 }
             ],
-            "links": []
+            "links": [],
         },
-        headers=authorization_header
+        headers=authorization_header,
     )
 
     assert response.status_code == 200

@@ -15,7 +15,7 @@ class UserLocalCreate(BaseModel):
             "example": {
                 "username": "testuser",
                 "name": "Mr. Testing",
-                "password": "password"
+                "password": "password",
             }
         }
 
@@ -53,4 +53,4 @@ class ApplicationEntity(BaseORMModel):
 
 class Token(BaseModel):
     access_token: str
-    token_type: str = 'Bearer'
+    token_type: str = "Bearer"

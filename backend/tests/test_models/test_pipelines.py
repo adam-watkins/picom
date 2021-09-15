@@ -24,7 +24,9 @@ class LinearPipelineFactory:
         self.edges = []
         self.db = db
 
-    def add_container(self, container: ContainerSchema, destination: DicomNodeSchema = None) -> ContainerSchema:
+    def add_container(
+        self, container: ContainerSchema, destination: DicomNodeSchema = None
+    ) -> ContainerSchema:
         node = PipelineNodeCreateSchema(
             node_id=len(self.nodes),
             container_id=container.id,
@@ -32,21 +34,25 @@ class LinearPipelineFactory:
             container_is_output=container.is_output_container,
             x=0,
             y=0,
-            dicom_node_id=destination.id
+            dicom_node_id=destination.id,
         )
 
         if self.nodes:
-            self.edges.append((self.nodes[-1]['node_id'], node.node_id))
+            self.edges.append((self.nodes[-1]["node_id"], node.node_id))
 
         self.nodes.append(node.dict())
 
         return container
 
     def add_output_container(self, destination: DicomNodeSchema) -> ContainerSchema:
-        container = self.db.query(Container).join(User).filter(
-            User.name == config.INTERNAL_USERNAME,
-            Container.is_output_container
-        ).first()
+        container = (
+            self.db.query(Container)
+            .join(User)
+            .filter(
+                User.name == config.INTERNAL_USERNAME, Container.is_output_container
+            )
+            .first()
+        )
 
         assert container
         schema = ContainerSchema.from_orm(container)
@@ -55,13 +61,13 @@ class LinearPipelineFactory:
 
     def create_pipeline(self, client, authorization_header):
         response = client.put(
-            f'/pipeline/{self.pipeline.id}',
+            f"/pipeline/{self.pipeline.id}",
             json={
                 "pipeline_id": self.pipeline.id,
                 "nodes": self.nodes,
-                "links": [{'from': src, 'to': dest} for src, dest in self.edges]
+                "links": [{"from": src, "to": dest} for src, dest in self.edges],
             },
-            headers=authorization_header
+            headers=authorization_header,
         )
 
         assert response.status_code == 200
@@ -103,19 +109,22 @@ def insert_job(db, run, **kwargs) -> PipelineJob:
 
 
 def test_pipeline_model(db):
-    pipeline = insert_pipeline(db, 'test')
+    pipeline = insert_pipeline(db, "test")
 
     assert not pipeline.runs
     assert not pipeline.nodes
     assert not pipeline.links
-    assert type(pipeline.get_starting_nodes()) is list and not pipeline.get_starting_nodes()
+    assert (
+        type(pipeline.get_starting_nodes()) is list
+        and not pipeline.get_starting_nodes()
+    )
 
     pipeline.delete(db)
     db.commit()
 
 
 def test_pipeline_run(db):
-    pipeline = insert_pipeline(db, 'Test Pipeline run')
+    pipeline = insert_pipeline(db, "Test Pipeline run")
     run = insert_run(db, pipeline)
 
     assert os.path.exists(run_path := run.get_abs_path())
@@ -128,7 +137,7 @@ def test_pipeline_run(db):
 
 
 def test_pipeline_job(db):
-    pipeline = insert_pipeline(db, 'Test Pipeline job')
+    pipeline = insert_pipeline(db, "Test Pipeline job")
     run = insert_run(db, pipeline)
     job = insert_job(db, run)
 
@@ -144,7 +153,7 @@ def test_pipeline_job(db):
 # noinspection DuplicatedCode
 @mark.no_SQLLite
 def test_cascade_delete_pipeline(db):
-    pipeline = insert_pipeline(db, 'test_cascade_delete_pipeline')
+    pipeline = insert_pipeline(db, "test_cascade_delete_pipeline")
     run = insert_run(db, pipeline)
     job = insert_job(db, run)
 
@@ -167,7 +176,7 @@ def test_cascade_delete_pipeline(db):
 # noinspection DuplicatedCode
 @mark.no_SQLLite
 def test_cascade_delete_run(db):
-    pipeline = insert_pipeline(db, 'test_cascade_delete_run')
+    pipeline = insert_pipeline(db, "test_cascade_delete_run")
     run = insert_run(db, pipeline)
     job = insert_job(db, run)
 
@@ -189,7 +198,7 @@ def test_cascade_delete_run(db):
 
 
 def test_job_volumes_paths(db):
-    pipeline = insert_pipeline(db, 'test_job_volumes_paths')
+    pipeline = insert_pipeline(db, "test_job_volumes_paths")
     run = insert_run(db, pipeline)
     job = insert_job(db, run)
 
@@ -200,28 +209,28 @@ def test_job_volumes_paths(db):
     assert os.path.exists(out_v)
 
     # Making sure the paths are not windows paths and linux paths
-    assert not ('\\' in in_v and '/' in in_v)
-    assert not ('\\' in out_v and '/' in out_v)
+    assert not ("\\" in in_v and "/" in in_v)
+    assert not ("\\" in out_v and "/" in out_v)
 
 
 def test_linux_paths(db):
-    pipeline = insert_pipeline(db, 'test_linux_paths')
+    pipeline = insert_pipeline(db, "test_linux_paths")
     run = insert_run(db, pipeline)
     job = insert_job(db, run)
 
-    assert '\\' not in run.input_path
-    assert '\\' not in run.output_path
+    assert "\\" not in run.input_path
+    assert "\\" not in run.output_path
     assert pathlib.Path(run.input_path).as_posix() == run.input_path
     assert pathlib.Path(run.output_path).as_posix() == run.output_path
 
-    assert '\\' not in job.input_path
-    assert '\\' not in job.output_path
+    assert "\\" not in job.input_path
+    assert "\\" not in job.output_path
     assert pathlib.Path(job.input_path).as_posix() == job.input_path
     assert pathlib.Path(job.output_path).as_posix() == job.output_path
 
 
 def test_graphs(db):
-    pipeline = insert_pipeline(db, 'test_graphs')
+    pipeline = insert_pipeline(db, "test_graphs")
     dg = pipeline.to_graph()
 
     assert len(dg.nodes) == 0

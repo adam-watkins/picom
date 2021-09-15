@@ -12,6 +12,4 @@ router = APIRouter()
 def run_test_task():
     pipelining.run_test_task()
 
-    return 'Running Test'
-
-
+    return "Running Test"

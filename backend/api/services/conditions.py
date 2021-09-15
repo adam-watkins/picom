@@ -24,7 +24,9 @@ class PipelineConditionService(DatabaseService):
     @property
     def starting_node(self):
         if not self._starting_node:
-            nodes = [n for n in self.pipeline.get_starting_nodes() if n.container_is_input]
+            nodes = [
+                n for n in self.pipeline.get_starting_nodes() if n.container_is_input
+            ]
 
             for node in nodes:
                 if node.destination.is_rts:
@@ -44,10 +46,14 @@ class PipelineConditionService(DatabaseService):
 
         kwargs = {
             "dicom_node_id": self.initiator.id,
-            "pipeline_node_id": self.starting_node.id
+            "pipeline_node_id": self.starting_node.id,
         }
 
-        if bucket := PipelineNodeStorageBucket.query(self._db).filter_by(**kwargs).first():
+        if (
+            bucket := PipelineNodeStorageBucket.query(self._db)
+            .filter_by(**kwargs)
+            .first()
+        ):
             self._bucket = bucket
         else:
             self._bucket = PipelineNodeStorageBucket(**kwargs).save(self._db)
@@ -57,7 +63,8 @@ class PipelineConditionService(DatabaseService):
     @property
     def bucket_items(self) -> dict:
         if not self._bucket_items:
-            self._bucket_items = {item.tag: item for item in self.storage_bucket.items}
+            self._bucket_items = {
+                item.tag: item for item in self.storage_bucket.items}
 
         return self._bucket_items
 
@@ -73,7 +80,8 @@ class PipelineConditionService(DatabaseService):
         return item
 
     def _update_bucket_item(self, tag, value):
-        bucket_item = self.bucket_items.get(tag) or self._create_bucket_item(tag)
+        bucket_item = self.bucket_items.get(
+            tag) or self._create_bucket_item(tag)
 
         if value not in bucket_item.values:
             # TODO: ADD DEBUG LOG?
@@ -90,8 +98,13 @@ class PipelineConditionService(DatabaseService):
             assert file.is_file()
 
             ds = dcmread(str(file), stop_before_pixels=True)
-            [self._update_bucket_item(c.tag, ds.get(c.tag)) for c in self.starting_node.conditions]
+            [
+                self._update_bucket_item(c.tag, ds.get(c.tag))
+                for c in self.starting_node.conditions
+            ]
 
+        print(
+            f'addserie, COPYING FROM {folder} to {self._bucket.get_abs_path()}')
         copytree(folder, self._bucket.get_abs_path(), dirs_exist_ok=True)
 
     def are_conditions_met(self) -> bool:
@@ -100,20 +113,23 @@ class PipelineConditionService(DatabaseService):
         :return: True if conditions are met else False
         """
 
-        q = self._db.query(PipelineNodeStorageBucketItem, PipelineNodeCondition)\
-            .join(PipelineNodeStorageBucket)\
+        q = (
+            self._db.query(PipelineNodeStorageBucketItem,
+                           PipelineNodeCondition)
+            .join(PipelineNodeStorageBucket)
             .filter(
                 PipelineNodeCondition.pipeline_node_id == self.starting_node.id,
-                PipelineNodeStorageBucketItem.tag == PipelineNodeCondition.tag
+                PipelineNodeStorageBucketItem.tag == PipelineNodeCondition.tag,
             )
+        )
 
         for bucket_item, condition in q.all():
             expected = set(condition.values)
             have = set(bucket_item.values)
 
-            if condition.match.lower() == 'all' and not have.issuperset(expected):
+            if condition.match.lower() == "all" and not have.issuperset(expected):
                 return False
-            elif condition.match.lower() == 'any' and expected.isdisjoint(have):
+            elif condition.match.lower() == "any" and expected.isdisjoint(have):
                 return False
 
         return True

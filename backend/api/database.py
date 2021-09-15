@@ -28,7 +28,7 @@ def worker_session():
 
 
 def session():
-    """ This session is meant to be used inside of fastapi with Depends(session) """
+    """This session is meant to be used inside of fastapi with Depends(session)"""
 
     session = SessionLocal()
     try:

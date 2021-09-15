@@ -17,7 +17,7 @@ class PipelineStats(BaseModel):
 
 
 class PipelineNodeConditionCreate(BaseModel):
-    match: str = 'All'
+    match: str = "All"
     tag: str
     values: List[str]
 
@@ -38,11 +38,13 @@ class PipelineNodeCreate(BaseModel):
 
     @root_validator
     def check_io_node_has_destination(cls, values):
-        if values.get('container_is_input'):
-            assert values.get('dicom_node_id'), "Input Node Missing an Input Source"
+        if values.get("container_is_input"):
+            assert values.get("dicom_node_id"), "Input Node Missing an Input Source"
 
-        if values.get('container_is_output'):
-            assert values.get('dicom_node_id'), "Output Node Missing an Output Destination"
+        if values.get("container_is_output"):
+            assert values.get(
+                "dicom_node_id"
+            ), "Output Node Missing an Output Destination"
 
         return values
 
@@ -66,9 +68,7 @@ class PipelineLinkCreate(BaseModel):
     from_: int
 
     class Config:
-        fields = {
-            'from_': 'from'
-        }
+        fields = {"from_": "from"}
 
 
 class PipelineLink(BaseORMModel):
@@ -91,16 +91,16 @@ class PipelineUpdate(BaseModel):
     @root_validator
     def check_pipeline_structure(cls, values):
         graph = DiGraph()
-        graph.add_nodes_from([v.node_id for v in values.get('nodes')])
-        graph.add_edges_from([(e.from_, e.to) for e in values.get('links')])
+        graph.add_nodes_from([v.node_id for v in values.get("nodes")])
+        graph.add_edges_from([(e.from_, e.to) for e in values.get("links")])
         validate_pipeline_structure(graph)
 
         return values
 
-    @validator('nodes')
+    @validator("nodes")
     def unique_node_ids(cls, v):
         s = set([node.node_id for node in v])
-        assert len(s) == len(v), 'Pipeline cannot contain duplicate nodes_ids'
+        assert len(s) == len(v), "Pipeline cannot contain duplicate nodes_ids"
 
         return v
 
@@ -128,8 +128,12 @@ class PipelineId(BaseModel):
 
 
 class PipelineRunOptions(BaseModel):
-    _DICOM_TYPES = {'node': dicom.DicomNode, 'patient': dicom.DicomPatient,
-                    'study': dicom.DicomStudy, 'series': dicom.DicomSeries}
+    _DICOM_TYPES = {
+        "node": dicom.DicomNode,
+        "patient": dicom.DicomPatient,
+        "study": dicom.DicomStudy,
+        "series": dicom.DicomSeries,
+    }
 
     pipeline_id: Optional[int]
     dicom_obj_type: str
@@ -143,11 +147,12 @@ class PipelineRunOptions(BaseModel):
             }
         }
 
-    @validator('dicom_obj_type')
+    @validator("dicom_obj_type")
     def type_must_be(cls, v: str):
         if v.lower() not in cls._DICOM_TYPES.keys():
             raise ValueError(
-                f'{v} is not a valid type. Valid types are {cls.DICOM_TYPES.keys()}')
+                f"{v} is not a valid type. Valid types are {cls.DICOM_TYPES.keys()}"
+            )
         return v
 
     def get_cls_type(self) -> Base:
