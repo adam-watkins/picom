@@ -37,6 +37,13 @@ def _run_next_nodes(job: PipelineJob, run_id: int):
 
 @dramatiq.actor(max_retries=0)
 def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
+    """Run a specific node task
+    For each starting node in  the pipeline, the node task is enqueued onto the worker node
+    Args:
+        run_id: ID of the pipeline run the correspond to the node
+        node_id: Node id to run
+        previous_job_id: Previous job id, defaults to none
+    """
     with worker_session() as db:
 
         # TODO: Check if all previous nodes have finished
@@ -101,6 +108,7 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
 @dramatiq.actor(max_retries=3)
 def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
     with worker_session() as db:
+        # This seems to be making an addtional PinelineJob which allocates a new empty input/output folder
         job: PipelineJob = create_job(db, run_id, node_id)
 
         if not (dest := job.node.destination):
@@ -113,11 +121,9 @@ def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
         if previous_job_id:
             prev: PipelineJob = PipelineJob.query(db).get(previous_job_id)
             folder = prev.get_abs_output_path()
-            print('prev foldy', folder)
         else:
             prev: PipelineRun = db.query(PipelineRun).get(run_id)
             folder = prev.get_abs_input_path()
-            print('esle prev foldy', folder)
         # Return to sender
         if dest.host == config._RTS_HOST and dest.port == config._RTS_PORT:
             # This is where the bug is, job.run.initiator is None
@@ -126,7 +132,9 @@ def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
         send_dicom_folder(dest, folder)
 
         mark_job_complete(db, job, exit_code=0)
-        mark_run_complete(db, job)
+        # This might've been the reason why it was copying from (next) empty job folder
+        # Now it copies from correct the pipeline_jobs output folder to pipeline_runs output folder
+        mark_run_complete(db, prev)
 
 
 def post_run_cleanup(db, job: PipelineJob):

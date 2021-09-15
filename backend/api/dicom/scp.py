@@ -38,6 +38,8 @@ def get_ae_titles(event):
 def handle_association_request(event):
     requestor_ae_title, called_ae_title = get_ae_titles(event)
 
+    print('handle associate request hit')
+
     with DicomNodeService() as node_service:
         node_service.update_or_create_from_connection(
             title=requestor_ae_title,
@@ -73,7 +75,8 @@ def handle_association_request(event):
 
 def is_valid_ae_title(called_ae_title):
     is_global_ae_title = config.SCP_AE_TITLE in called_ae_title
-    has_valid_ae_title_prefix = called_ae_title.startswith(config.VALID_AE_PREFIXES)
+    has_valid_ae_title_prefix = called_ae_title.startswith(
+        config.VALID_AE_PREFIXES)
 
     return is_global_ae_title or has_valid_ae_title_prefix
 
@@ -86,7 +89,7 @@ def handle_association_release(event):
         event.assoc.requestor.address,
         event.assoc.requestor.port,
     )
-
+    print('handle association hit')
     if requestor_ae_title in CONNECTIONS:
         try:
             with DicomIngestService(

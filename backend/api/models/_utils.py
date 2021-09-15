@@ -9,6 +9,8 @@ def fix_output_dir(src_dir) -> str:
     Since pipeline_jobs automatically creates a folder for next input/output,
     there is a mismatch when copying the final jobs output to runs output
     To fix this issue, the path is deconstructed and the id is decremented once
+
+    Currently unused, since another fix is implemented
     """
     src_dir = str(src_dir)
     id_pos = 0
@@ -40,16 +42,12 @@ def copy_model_fs(
     src_dir = pathlib.Path(src.get_abs_path(subdir=src_subdir)).resolve()
     dst_dir = pathlib.Path(dst.get_abs_path(subdir=dst_subdir)).resolve()
 
-    # Test fails due to pathing issues, commented until solution is found
-    # if final_node:
-    #     src_dir = fix_output_dir(src_dir)
-
     print(f"COPYING {src_dir} to {dst_dir}")
     copytree(src_dir, dst_dir, dirs_exist_ok=True)
 
 
 def strip_prefix(str_: str, prefix: str):
     if str_.startswith(prefix):
-        str_ = str_[len(prefix) :]
+        str_ = str_[len(prefix):]
 
     return str_
