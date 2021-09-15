@@ -33,23 +33,36 @@ def run_ingest_task(folder: str, dicom_node_id: int, user_id: int = None):
             ds = dcmread(str(file_path))
 
             if not (patient := db.query(DicomPatient).filter_by(dicom_node_id=node.id, patient_id=ds.PatientID).first()):
-                patient = DicomPatient(dicom_node_id=node.id, patient_id=ds.PatientID)
+                patient = DicomPatient(
+                    dicom_node_id=node.id, patient_id=ds.PatientID)
                 patient.save(db)
 
             if not (study := db.query(DicomStudy).filter_by(dicom_patient_id=patient.id, study_instance_uid=ds.StudyInstanceUID).first()):
+                # StudyTime sometimes contains a trailing floating point of 0's which causes parsing error
+                converted_studytime = ds.StudyTime
+                if '.' in ds.StudyTime:
+                    converted_studytime = str(int(float(ds.StudyTime)))
                 study = DicomStudy(
                     dicom_patient_id=patient.id,
                     study_instance_uid=ds.StudyInstanceUID,
-                    study_date=datetime.strptime(ds.StudyDate + ds.StudyTime, '%Y%m%d%H%M%S')
+                    study_date=datetime.strptime(
+                        ds.StudyDate + converted_studytime, '%Y%m%d%H%M%S')
                 )
                 study.save(db)
 
             if not (series := db.query(DicomSeries).filter_by(dicom_study_id=study.id, series_instance_uid=ds.SeriesInstanceUID).first()):
+                # Certain DICOM files do not have SeriesDescription
+                # Quick fix: Replace with the text "Undefined"
+                # TODO: Propagate the error up to the interface to notify the user
+                series_descrip = ds.SeriesDescription
+                if series_descrip is None:
+                    series_descrip = "Undefined"
                 series = DicomSeries(
                     dicom_study_id=study.id,
                     series_instance_uid=ds.SeriesInstanceUID,
                     # TODO: Add a series description table
-                    series_description=ds.SeriesDescription,
+                    # TODO: Handle exception when SeriesDescription does not exist
+                    series_description=series_descrip,
                     modality=ds.Modality,
                     date_received=datetime.today()
 
@@ -57,7 +70,8 @@ def run_ingest_task(folder: str, dicom_node_id: int, user_id: int = None):
                 series.save(db)
 
             # Grab the save path so we can release the session connection
-            save_path = pathlib.Path(series.get_abs_path()) / (ds.SOPInstanceUID + '.dcm')
+            save_path = pathlib.Path(
+                series.get_abs_path()) / (ds.SOPInstanceUID + '.dcm')
             shutil.move(file_path, save_path)
         db.commit()
 
@@ -79,4 +93,3 @@ def update_or_create_user_node(db, global_node: DicomNode, user_id: int) -> Dico
         ).save(db)
 
     return node
-
