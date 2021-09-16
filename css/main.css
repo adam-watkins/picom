@@ -1,0 +1,17 @@
+/*.md-container {*/
+/*    background-color: #33333d;*/
+/*}*/
+.md-header, .md-nav__title {
+    color: black !important;
+}
+
+.md-nav__source {
+    background-color: var(--md-accent-fg-color);
+}
+
+:root {
+    --md-primary-fg-color: #fdbb16;
+    /*--md-primary-fg-color: #771c46;*/
+    --md-accent-fg-color: #771c46;
+}
+
