@@ -88,7 +88,7 @@ def handle_association_release(event):
         event.assoc.requestor.address,
         event.assoc.requestor.port,
     )
-    print("handle association hit")
+
     if requestor_ae_title in CONNECTIONS:
         try:
             with DicomIngestService(

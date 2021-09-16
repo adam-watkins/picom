@@ -41,8 +41,7 @@ class Association:
             ae.requested_contexts = self.contexts
         else:
             ae.add_requested_context(self.contexts)
-        # Docker container cannot make DICOM association via localhost/127.0.0.1
-        # Must explicitly make request to the docker container name
+            
         if self.ae_title == "orthanc":
             self.host = self.ae_title
         assoc = ae.associate(

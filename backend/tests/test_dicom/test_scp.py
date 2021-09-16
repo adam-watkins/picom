@@ -159,8 +159,11 @@ def test_store_valid_user(db, stub_broker, stub_worker):
         config.USER_AE_PREFIX + utils.get_test_user(db).username
     )
     perform_store(association)
-    # Ensure detached SCP server has enough time to send job to worker before .join
-    sleep(1)
+
+    sleep(
+        1
+    )  # Ensure detached SCP server has enough time to send job to worker before .join
+
     join(stub_broker, stub_worker)
 
     user = utils.get_test_user(db)
@@ -176,8 +179,11 @@ def test_store_invalid_user(db, stub_broker, stub_worker):
     # Send dicom to user
     association = get_association_to_ae(config.USER_AE_PREFIX + "FAKE_NAME")
     perform_store(association)
-    # Ensure detached SCP server has enough time to send job to worker before .join
-    sleep(1)
+
+    sleep(
+        1
+    )  # Ensure detached SCP server has enough time to send job to worker before .join
+
     join(stub_broker, stub_worker)
 
     new_count = db.query(DicomSeries).count()
@@ -226,8 +232,11 @@ def test_store_pipeline_workflow(db, stub_broker, stub_worker, authorization_hea
     association = get_association_to_ae(config.PIPELINE_AE_PREFIX + pipeline_ae_title)
 
     perform_store(association)
-    # Ensure detached SCP server has enough time to send job to worker before .join
-    sleep(2)
+
+    sleep(
+        2
+    )  # Ensure detached SCP server has enough time to send job to worker before .join
+
     join(stub_broker, stub_worker)
 
     assert init_pipeline_run_count < db.query(PipelineRun).count()
