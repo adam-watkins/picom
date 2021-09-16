@@ -83,7 +83,7 @@ def mark_run_complete(db, job: PipelineJob, status: str = "complete") -> Pipelin
     """Marks the pipeline RUN (not job) complete"""
 
     run = job.run
-    models.utils.copy_model_fs(job, run, dst_subdir="output")
+    models.utils.copy_model_fs(job, run, dst_subdir="output", final_node=True)
     run.update(db, status=status, finished_datetime=datetime.now())
 
     return run

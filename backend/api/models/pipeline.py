@@ -128,6 +128,9 @@ class PipelineRun(IOPathMixin, Base):
         "PipelineRunResultFile", backref="run", cascade="all, delete-orphan"
     )
 
+    def __repr__(self, **kwargs) -> str:
+        return f"<Pipeline ID: {self.pipeline_id}, Initiator ID: {self.initiator_id}>"
+
 
 class PipelineJob(IOPathMixin, TimestampMixin, Base):
     pipeline_run_id = Column(ForeignKey("pipeline_run.id", **CASCADE))
@@ -142,6 +145,9 @@ class PipelineJob(IOPathMixin, TimestampMixin, Base):
 
     def get_volume_abs_output_path(self):
         return pathlib.Path(config.UPLOAD_VOLUME_ABSPATH) / self.output_path
+
+    def __repr__(self, **kwargs) -> str:
+        return f"<Pipeline Run ID: {self.pipeline_run_id}, Pipeline Node ID: {self.pipeline_node_id}, Status: {self.status}>"
 
 
 class PipelineJobError(Base):

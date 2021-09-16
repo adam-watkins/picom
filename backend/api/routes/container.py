@@ -106,7 +106,6 @@ def create_container(
     user: User = Depends(token_auth),
     db: Session = Depends(session),
 ):
-
     db_container = Container(
         user_id=user.id,
         name=name,

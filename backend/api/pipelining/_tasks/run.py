@@ -36,6 +36,13 @@ def _run_next_nodes(job: PipelineJob, run_id: int):
 
 @dramatiq.actor(max_retries=0)
 def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
+    """Run a specific node task
+    For each starting node in  the pipeline, the node task is enqueued onto the worker node
+    Args:
+        run_id: ID of the pipeline run the correspond to the node
+        node_id: Node id to run
+        previous_job_id: Previous job id, defaults to none
+    """
     with worker_session() as db:
 
         # TODO: Check if all previous nodes have finished
@@ -49,6 +56,7 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
         job: PipelineJob = create_job(db, run_id, node_id)
 
         if not (build := job.node.container.build):
+            # Build exists, even though the image doesn't, which causes an error
             # TODO: ABORT AND BUILD
             print("Cant run node because container is not built")
             return
@@ -59,11 +67,12 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
         else:
             src_subdir = "input"
             prev = db.query(PipelineRun).get(run_id)
-
         models.utils.copy_model_fs(prev, job, src_subdir=src_subdir)
         volumes = get_volumes(job)
         environment = get_environment(job)
 
+        # If the user cleared/pruned their unused images, it cannot find the container image to run
+        # TODO: Handle case when the container image is deleted, and rebuild before running
         container: DockerContainer = docker.containers.run(
             image=build.tag,
             detach=True,
@@ -97,7 +106,8 @@ def run_node_task(run_id: int, node_id: int, previous_job_id: int = None):
 @dramatiq.actor(max_retries=3)
 def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
     with worker_session() as db:
-        job = create_job(db, run_id, node_id)
+        # This seems to be making an addtional PinelineJob which allocates a new empty input/output folder
+        job: PipelineJob = create_job(db, run_id, node_id)
 
         if not (dest := job.node.destination):
             job.update(db, status="failed", exit_code=-1)
@@ -112,11 +122,10 @@ def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
         else:
             prev: PipelineRun = db.query(PipelineRun).get(run_id)
             folder = prev.get_abs_input_path()
-
         # Return to sender
         if dest.host == config._RTS_HOST and dest.port == config._RTS_PORT:
+            # This is where the bug is, job.run.initiator is None
             dest = job.run.initiator
-
         # Long running task
         send_dicom_folder(dest, folder)
 

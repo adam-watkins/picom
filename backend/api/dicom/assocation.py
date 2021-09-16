@@ -42,6 +42,8 @@ class Association:
         else:
             ae.add_requested_context(self.contexts)
 
+        if self.ae_title == "orthanc":
+            self.host = self.ae_title
         assoc = ae.associate(
             addr=self.host, port=self.port, ae_title=self.ae_title, **self.kwargs
         )

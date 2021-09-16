@@ -101,6 +101,7 @@ class PipelineConditionService(DatabaseService):
                 for c in self.starting_node.conditions
             ]
 
+        print(f"add series, COPYING FROM {folder} to {self._bucket.get_abs_path()}")
         copytree(folder, self._bucket.get_abs_path(), dirs_exist_ok=True)
 
     def are_conditions_met(self) -> bool:
