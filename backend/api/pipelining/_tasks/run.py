@@ -130,7 +130,7 @@ def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
         send_dicom_folder(dest, folder)
 
         mark_job_complete(db, job, exit_code=0)
-        mark_run_complete(db, prev)
+        mark_run_complete(db, job)
 
 
 def post_run_cleanup(db, job: PipelineJob):
