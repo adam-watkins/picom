@@ -69,7 +69,9 @@ class PipelineController:
         return PipelineController.run_pipeline_task(db, pipeline_run)
 
     @staticmethod
-    def pipeline_run_factory(db, dicom_cls, dicom_obj_id: int, pipeline_id: int) -> PipelineRun:
+    def pipeline_run_factory(
+        db, dicom_cls, dicom_obj_id: int, pipeline_id: int
+    ) -> PipelineRun:
         """Create and return a PipelineRun instance
         In the process, also copies the input/output folder from upload jobs to upload runs
 

@@ -28,6 +28,6 @@ def copy_model_fs(
 
 def strip_prefix(str_: str, prefix: str):
     if str_.startswith(prefix):
-        str_ = str_[len(prefix):]
+        str_ = str_[len(prefix) :]
 
     return str_
