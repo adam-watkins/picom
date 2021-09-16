@@ -128,10 +128,8 @@ class PipelineRun(IOPathMixin, Base):
         "PipelineRunResultFile", backref="run", cascade="all, delete-orphan"
     )
 
-
     def __repr__(self, **kwargs) -> str:
         return f"<Pipeline ID: {self.pipeline_id}, Initiator ID: {self.initiator_id}>"
-
 
 
 class PipelineJob(IOPathMixin, TimestampMixin, Base):

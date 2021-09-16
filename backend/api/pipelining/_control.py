@@ -35,7 +35,7 @@ class PipelineController:
         Returns:
             Bool: Currently, always returns true
         """
-        
+
         pipeline_run.status = "running"
         pipeline_run.save(db)
         db.commit()

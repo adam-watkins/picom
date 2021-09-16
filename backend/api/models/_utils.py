@@ -4,7 +4,6 @@ from shutil import copytree
 from . import NestedPathMixin, IOPathMixin
 
 
-
 def fix_output_dir(src_dir) -> str:
     """
     Since pipeline_jobs automatically creates a folder for next input/output,

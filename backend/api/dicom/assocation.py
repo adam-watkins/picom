@@ -41,7 +41,7 @@ class Association:
             ae.requested_contexts = self.contexts
         else:
             ae.add_requested_context(self.contexts)
-            
+
         if self.ae_title == "orthanc":
             self.host = self.ae_title
         assoc = ae.associate(
