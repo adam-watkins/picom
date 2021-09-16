@@ -66,9 +66,6 @@ class BaseConfig:
     RAIVEN_OUTPUT_DIR = "/mnt/raiven/output"
     IMAGE_TAG_PREFIX = "RAIVEN"
 
-    PIPELINE_OUTPUT_PRE_DIR = "/app/uploads/pipeline_jobs/"
-    PIPELINE_OUTPUT_SUF_DIR = "/output"
-
     # AE Prefixes
     PIPELINE_AE_PREFIX = "RVP-"
     USER_AE_PREFIX = "RVU-"

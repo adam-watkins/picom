@@ -38,8 +38,6 @@ def get_ae_titles(event):
 def handle_association_request(event):
     requestor_ae_title, called_ae_title = get_ae_titles(event)
 
-    print("handle associate request hit")
-
     with DicomNodeService() as node_service:
         node_service.update_or_create_from_connection(
             title=requestor_ae_title,
