@@ -130,8 +130,6 @@ def dicom_output_task(run_id: int, node_id: int, previous_job_id: int = None):
         send_dicom_folder(dest, folder)
 
         mark_job_complete(db, job, exit_code=0)
-        # This might've been the reason why it was copying from (next) empty job folder
-        # Now it copies from correct the pipeline_jobs output folder to pipeline_runs output folder
         mark_run_complete(db, prev)
 
 
