@@ -4,26 +4,6 @@ from shutil import copytree
 from . import NestedPathMixin, IOPathMixin
 
 
-def fix_output_dir(src_dir) -> str:
-    """
-    Since pipeline_jobs automatically creates a folder for next input/output,
-    there is a mismatch when copying the final jobs output to runs output
-    To fix this issue, the path is deconstructed and the id is decremented once
-
-    Currently unused, since another fix is implemented
-    """
-    src_dir = str(src_dir)
-    id_pos = 0
-    dir_split = src_dir.split("/")
-    for idx, word in enumerate(dir_split):
-        if word.isdigit():
-            id_pos = idx
-    dir_split[id_pos] = str(int(dir_split[id_pos]) - 1)
-    new_dir = "/".join(dir_split)
-
-    return new_dir
-
-
 def copy_model_fs(
     src: NestedPathMixin,
     dst: IOPathMixin,
@@ -48,6 +28,6 @@ def copy_model_fs(
 
 def strip_prefix(str_: str, prefix: str):
     if str_.startswith(prefix):
-        str_ = str_[len(prefix) :]
+        str_ = str_[len(prefix):]
 
     return str_
